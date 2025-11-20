@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vidsrc - Premium Streaming</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="main-header">
+            <div class="logo-container">
+                <h1 class="logo">Vidsrc<span class="accent">.</span></h1>
+            </div>
+            <div class="search-container">
+                <div class="search-wrapper">
+                    <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <input type="text" id="search-input" placeholder="Search movies & TV shows...">
+                    <button id="search-clear" class="search-clear hidden" aria-label="Clear search">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div id="app-badge" class="badge hidden">
+                    <span class="badge-dot"></span> Desktop App
+                </div>
+            </div>
+        </header>
+        <style>
+        </style>
+        <main class="content-area">
+            <section id="hero-section" class="hero hidden">
+                <div class="hero-content">
+                    <h1 id="hero-title">Loading...</h1>
+                    <p id="hero-overview">Please wait...</p>
+                    <button id="hero-play" class="btn-primary">Play Now</button>
+                </div>
+            </section>
+
+            <!-- Trending Movies -->
+            <section id="trending-movies" class="media-section">
+                <div class="section-header">
+                    <h2>Trending Movies</h2>
+                    <div class="tabs">
+                        <button class="tab active" data-type="movie" data-time="day">Today</button>
+                        <button class="tab" data-type="movie" data-time="week">This Week</button>
+                    </div>
+                </div>
+                <div class="media-grid" id="trending-movies-grid"></div>
+            </section>
+
+            <!-- Popular TV Shows -->
+            <section id="popular-tv" class="media-section">
+                <div class="section-header">
+                    <h2>Popular TV Shows</h2>
+                </div>
+                <div class="media-grid" id="popular-tv-grid"></div>
+            </section>
+
+            <!-- Category Feeds Container -->
+            <div id="category-feeds-container"></div>
+
+            <!-- Search Results -->
+            <section id="search-results-section" class="media-section hidden">
+                <div class="section-header">
+                    <h2>Search Results</h2>
+                    <button id="close-search" class="btn-icon" aria-label="Close Search">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="media-grid" id="search-grid"></div>
+            </section>
+
+            <!-- Category Grid View -->
+            <section id="category-view-section" class="media-section hidden">
+                <div class="section-header">
+                    <h2 id="category-title">Category Name</h2>
+                    <button id="close-category" class="btn-icon" aria-label="Back to Home">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="19" y1="12" x2="5" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                    </button>
+                </div>
+                <div class="media-grid" id="category-grid"></div>
+                <div class="load-more-container">
+                    <button id="load-more-category" class="btn-secondary">Load More</button>
+                </div>
+            </section>
+        </main>
+
+        <footer class="main-footer">
+            <p>Powered by <span class="accent">TMDB</span> & <span class="accent">Vidsrc</span></p>
+        </footer>
+    </div>
+
+    <div id="modal-overlay" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button id="close-modal" class="close-modal">×</button>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
