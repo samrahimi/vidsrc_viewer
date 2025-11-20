@@ -1,4 +1,5 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
+const path = require('path');
 
 let startupUrl;
 
@@ -10,6 +11,7 @@ function createWindow() {
             nodeIntegration: false,
             contextIsolation: true,
             sandbox: true,
+            preload: path.join(__dirname, 'preload.js'),
         },
     });
 
@@ -37,8 +39,9 @@ function createWindow() {
             win.loadURL(urlToLoad);
         }
     } else {
-        // Fallback or help
-        win.loadURL('data:text/html,<h1>Vidsrc Viewer</h1><p>Please provide a URL as an argument.</p>');
+        // Load the movie browser UI by default
+        const browserPath = path.join(__dirname, 'browser', 'index.html');
+        win.loadFile(browserPath);
     }
 }
 
@@ -97,6 +100,21 @@ function handleOpenUrl(url) {
 }
 
 // Set as default protocol client
-// We explicitly point to our global wrapper script so that opening vidsrc:// links
-// invokes the same environment/command as running 'vidsrc' from the terminal.
-app.setAsDefaultProtocolClient('vidsrc', '/usr/local/bin/vidsrc');
+// For packaged apps, use the app's own executable path
+// For development, this will use the electron executable
+if (app.isPackaged) {
+    // In a packaged app, use the app's executable directly
+    app.setAsDefaultProtocolClient('vidsrc');
+} else {
+    // In development mode
+    app.setAsDefaultProtocolClient('vidsrc');
+}
+
+// Handle navigation home from preload script
+ipcMain.on('navigate-home', (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win) {
+        const browserPath = path.join(__dirname, 'browser', 'index.html');
+        win.loadFile(browserPath);
+    }
+});

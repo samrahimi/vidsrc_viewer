@@ -1,25 +1,79 @@
 # Vidsrc Viewer
 
-A popup-free, distraction-free viewer for `vidsrc.xyz` streams. This Electron-based application allows you to watch content without the annoyance of browser popups and ads. It also handles `vidsrc://` links directly, allowing for seamless integration with other tools.
+**A complete movie browsing and streaming application.** Discover and watch popular movies and TV shows in a beautiful, popup-free, ad-free environment. This Electron-based app combines content discovery with distraction-free viewing.
 
-## Features
+## ✨ Features
 
-*   **Popup Blocking**: Automatically blocks all popup windows and tabs.
-*   **Custom Protocol**: Registers `vidsrc://` to open links directly in the viewer.
-*   **Clean Interface**: Just the video, no browser chrome.
+*   **🎬 Integrated Movie Browser**: Browse 10 popular movies and TV shows right from the app
+*   **🚫 Popup Blocking**: Automatically blocks all popup windows and tabs
+*   **🎯 Smart Protocol Switching**: Uses `vidsrc://` in the app for seamless streaming, `https://` in browsers
+*   **🎨 Premium UI**: Beautiful dark theme with glassmorphism effects
+*   **⚡ Ad-Free Experience**: No interruptions when using the desktop app
+*   **🔗 Custom Protocol**: Handles `vidsrc://` links directly from your browser
 
-## Installation
+## 🎮 Usage
 
-### Prerequisites
+### Launch the App
+
+Simply open **Vidsrc Viewer** from Applications or Spotlight. You'll see a beautiful movie browser with curated content. Click any movie or show to start streaming instantly!
+
+### From the Browser
+
+When you encounter a `vidsrc://` link on the web, it will automatically open in the Vidsrc Viewer app if installed.
+
+### Command Line (Optional)
+
+If you've set up the symlink (see developer instructions), you can also launch URLs directly:
+
+```bash
+vidsrc https://vidsrc.xyz/embed/movie/tt0133093
+vidsrc vidsrc://vidsrc.xyz/embed/tv/tt1190634
+```
+
+## 📥 Installation
+
+### For End Users (Recommended)
+
+**The easiest way to install** - no terminal required!
+
+1.  **Download** the latest `VidsrcViewer-Installer.dmg` from the releases page
+2.  **Open** the DMG file  
+3.  **Drag** VidsrcViewer to your Applications folder
+4.  **Launch** the app from Applications or Spotlight
+
+That's it! The `vidsrc://` protocol handler and movie browser are ready to use.
+
+### For Developers
+
+#### Prerequisites
 
 *   **Node.js**: You need to have Node.js installed. [Download it here](https://nodejs.org/).
 *   **macOS**: This guide is currently tailored for macOS users.
 
-### Setup Guide
+#### macOS Users (Automated Installation)
+
+**macOS developers** can use the automated installation script:
 
 1.  **Clone the repository**
     ```bash
-    git clone https://github.com/YOUR_USERNAME/vidsrc_viewer.git
+    git clone https://github.com/samrahimi/vidsrc_viewer.git
+    cd vidsrc_viewer
+    ```
+
+2.  **Run the installation script**
+    ```bash
+    ./install_macos.sh
+    ```
+
+That's it! The script will automatically install dependencies, package the application, and register the `vidsrc` command and protocol handler.
+
+#### Manual Installation (All Platforms)
+
+**Windows and Linux developers** should follow these manual steps. Platform-specific packaging configurations will be added in the next release.
+
+1.  **Clone the repository**
+    ```bash
+    git clone https://github.com/samrahimi/vidsrc_viewer.git
     cd vidsrc_viewer
     ```
 
@@ -46,6 +100,21 @@ A popup-free, distraction-free viewer for `vidsrc.xyz` streams. This Electron-ba
     # Open the app once to register the protocol with macOS
     open dist/VidsrcViewer-darwin-x64/VidsrcViewer.app
     ```
+
+#### Building the DMG Installer (For Distribution)
+
+To create a DMG installer for end users:
+
+```bash
+npm run build-dmg
+```
+
+This will:
+1. Package the application
+2. Create a DMG file at `dist/VidsrcViewer-Installer.dmg`
+3. Include the classic "drag to Applications" interface
+
+The DMG file can be distributed to users who want the GUI installation experience.
 
 ## Usage
 
