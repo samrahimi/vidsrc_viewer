@@ -1,0 +1,26 @@
+{
+    "name": "vidsrc-viewer",
+    "version": "1.0.0",
+    "description": "A popup-free viewer for vidsrc.xyz",
+    "main": "main.js",
+    "scripts": {
+        "start": "electron .",
+        "package": "electron-packager . VidsrcViewer --platform=darwin --arch=x64 --overwrite --protocol=vidsrc --protocol-name=\"Vidsrc Viewer\" --out=dist"
+    },
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "electron": "^33.2.0",
+        "electron-packager": "^17.1.2"
+    },
+    "build": {
+        "protocols": [
+            {
+                "name": "Vidsrc Viewer",
+                "schemes": [
+                    "vidsrc"
+                ]
+            }
+        ]
+    }
+}
