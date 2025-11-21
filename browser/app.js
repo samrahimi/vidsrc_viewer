@@ -3,8 +3,10 @@ const BASE_URL = "https://api.themoviedb.org/3";
 const IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
 const IMAGE_ORIGINAL_URL = "https://image.tmdb.org/t/p/original";
 
-// Detect if running in Electron
+// Detect if running in Electron or Android (Native)
 const isElectron = navigator.userAgent.toLowerCase().includes('electron');
+const isAndroid = navigator.userAgent.toLowerCase().includes('android');
+const isNative = isElectron || isAndroid;
 
 // DOM Elements
 const moviesGrid = document.getElementById('trending-movies-grid');
@@ -51,8 +53,9 @@ $(document).ready(function () {
     initApp();
 });
 async function initApp() {
-    if (isElectron) {
+    if (isNative) {
         appBadge.classList.remove('hidden');
+        if (isAndroid) appBadge.innerHTML = '<span class="badge-dot"></span> Android App';
     }
 
     await fetchGenres();
@@ -493,8 +496,8 @@ window.playContent = function (tmdbId, type) {
     // Add to history
     addToHistory(tmdbId, type);
 
-    if (isElectron) {
-        // In Electron, we want to navigate the main window or trigger the protocol handler
+    if (isNative) {
+        // In Native (Electron/Android), we want to navigate the main window or trigger the protocol handler
         // Since this page IS the default view, clicking should probably navigate the current window
         // OR if we want to trigger the 'vidsrc://' handler which might open a new window/process depending on main.js
         // But usually window.location.href works for protocols if registered.
@@ -641,7 +644,7 @@ function getStreamUrl(tmdbId, type) {
 
     const path = `vidsrc.xyz/embed/${type}/${tmdbId}`;
 
-    if (isElectron) {
+    if (isNative) {
         return `vidsrc://${path}`;
     } else {
         // For web preview, we can't really "play" it without the app, 
