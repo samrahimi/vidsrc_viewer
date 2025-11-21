@@ -36,6 +36,14 @@
                 </div>
             </div>
             <div class="header-actions">
+                <button id="favorites-btn" class="btn-icon" aria-label="Favorites">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+                        </path>
+                    </svg>
+                </button>
                 <div id="app-badge" class="badge hidden">
                     <span class="badge-dot"></span> Desktop App
                 </div>
@@ -52,6 +60,25 @@
                 </div>
             </section>
 
+            <!-- For You Container -->
+            <section id="foryou-container" class="media-section hidden">
+                <div class="section-header">
+                    <h2>For You</h2>
+                </div>
+
+                <!-- Favorites Subsection -->
+                <div id="favorites-section" class="subsection hidden">
+                    <h3 class="subsection-title">Favorites</h3>
+                    <div class="media-grid" id="favorites-grid"></div>
+                </div>
+
+                <!-- Watching Subsection -->
+                <div id="history-section" class="subsection hidden">
+                    <h3 class="subsection-title">Watching</h3>
+                    <div class="media-grid" id="history-grid"></div>
+                </div>
+            </section>
+
             <!-- Trending Movies -->
             <section id="trending-movies" class="media-section">
                 <div class="section-header">
@@ -63,6 +90,8 @@
                 </div>
                 <div class="media-grid" id="trending-movies-grid"></div>
             </section>
+
+
 
             <!-- Popular TV Shows -->
             <section id="popular-tv" class="media-section">
@@ -120,8 +149,19 @@
             <div id="modal-body"></div>
         </div>
     </div>
+    <!-- jQuery: must go before app.js  -->
+    <script src="https://code.jquery.com/jquery-3.7.1.js"
+        integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
 
+    <!-- app.js - entry point is initApp on document ready-->
     <script src="app.js"></script>
+
+
+    <script>
+        $(document).ready(function () {
+            console.log("Document is ready!");
+        });
+    </script>
 </body>
 
 </html>

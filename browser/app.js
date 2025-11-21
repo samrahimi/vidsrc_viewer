@@ -33,15 +33,23 @@ let currentCategoryPage = 1;
 let currentCategoryId = null;
 let currentCategoryName = '';
 let isCategoryLoading = false;
+let favorites = JSON.parse(localStorage.getItem('vidsrc_favorites')) || [];
+let history = JSON.parse(localStorage.getItem('vidsrc_history')) || [];
+
+
 
 // Config
 const CATEGORIES_TO_SHOW = [28, 35, 18, 878]; // Action, Comedy, Drama, Sci-Fi (IDs from TMDB)
 
 // Initialize
-document.addEventListener('DOMContentLoaded', () => {
+// document.addEventListener('DOMContentLoaded', () => {
+//     initApp();
+// });
+
+// Important: Jquery must be loaded and available to call 
+$(document).ready(function () {
     initApp();
 });
-
 async function initApp() {
     if (isElectron) {
         appBadge.classList.remove('hidden');
@@ -50,6 +58,10 @@ async function initApp() {
     await fetchGenres();
     fetchTrending('movie', 'day');
     fetchTrending('tv', 'day');
+    fetchTrending('tv', 'day');
+    fetchTrending('tv', 'day');
+    renderFavorites();
+    renderHistory();
     renderCategoryFeeds();
     setupEventListeners();
 }
@@ -94,6 +106,20 @@ function setupEventListeners() {
     // Category View
     closeCategoryBtn.addEventListener('click', closeCategoryView);
     loadMoreCategoryBtn.addEventListener('click', loadMoreCategory);
+
+    // Favorites
+    document.getElementById('favorites-btn').addEventListener('click', () => {
+        const favSection = document.getElementById('favorites-section');
+        favSection.classList.remove('hidden');
+        favSection.scrollIntoView({ behavior: 'smooth' });
+    });
+
+    // History
+    document.getElementById('history-btn').addEventListener('click', () => {
+        const histSection = document.getElementById('history-section');
+        histSection.classList.remove('hidden');
+        histSection.scrollIntoView({ behavior: 'smooth' });
+    });
 }
 
 async function fetchTrending(type, timeWindow) {
@@ -207,6 +233,9 @@ async function openCategoryView(genreId, genreName) {
     categoryViewSection.classList.remove('hidden');
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
+    // Add scroll listener for infinite scroll
+    window.addEventListener('scroll', handleInfiniteScroll);
+
     // Load first page
     await loadCategoryPage();
 }
@@ -220,7 +249,8 @@ async function loadCategoryPage() {
         const response = await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=${currentCategoryId}&sort_by=popularity.desc&page=${currentCategoryPage}`);
         const data = await response.json();
 
-        renderGrid(data.results, categoryGrid, 'movie');
+        const shouldAppend = currentCategoryPage > 1;
+        renderGrid(data.results, categoryGrid, 'movie', shouldAppend);
 
         if (currentCategoryPage >= data.total_pages) {
             loadMoreCategoryBtn.classList.add('hidden');
@@ -244,6 +274,16 @@ function closeCategoryView() {
     categoryViewSection.classList.add('hidden');
     categoryGrid.innerHTML = '';
     mainContentSections.forEach(el => el.classList.remove('hidden'));
+    window.removeEventListener('scroll', handleInfiniteScroll);
+}
+
+function handleInfiniteScroll() {
+    if (isCategoryLoading || loadMoreCategoryBtn.classList.contains('hidden')) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+    if (scrollTop + clientHeight >= scrollHeight - 500) { // Load when near bottom
+        loadCategoryPage();
+    }
 }
 
 function updateHero(item) {
@@ -277,8 +317,10 @@ function updateHero(item) {
     `;
 }
 
-function renderGrid(items, container, forcedType) {
-    container.innerHTML = '';
+function renderGrid(items, container, forcedType, shouldAppend = false) {
+    if (!shouldAppend) {
+        container.innerHTML = '';
+    }
 
     items.forEach(item => {
         if (!item.poster_path) return; // Skip items without posters
@@ -295,6 +337,11 @@ function renderGrid(items, container, forcedType) {
 
         card.innerHTML = `
             <img src="${posterUrl}" alt="${title}" class="card-poster" loading="lazy">
+            <button class="fav-btn ${isFavorite(item.id) ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavorite('${item.id}', '${type}', '${encodeURIComponent(title)}', '${item.poster_path}', '${year}', '${rating}')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="${isFavorite(item.id) ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                </svg>
+            </button>
             <div class="card-overlay">
                 <h3 class="card-title">${title}</h3>
                 <div class="card-meta">
@@ -323,6 +370,9 @@ window.playContent = function (tmdbId, type) {
     const url = getStreamUrl(tmdbId, type);
     console.log(`Opening: ${url}`);
 
+    // Add to history
+    addToHistory(tmdbId, type);
+
     if (isElectron) {
         // In Electron, we want to navigate the main window or trigger the protocol handler
         // Since this page IS the default view, clicking should probably navigate the current window
@@ -336,6 +386,133 @@ window.playContent = function (tmdbId, type) {
         window.location.href = url;
     }
 };
+
+// --- Favorites Logic ---
+
+function isFavorite(id) {
+    return favorites.some(f => f.id == id);
+}
+
+window.toggleFavorite = function (id, type, title, poster_path, year, rating) {
+    const index = favorites.findIndex(f => f.id == id);
+    if (index === -1) {
+        favorites.push({ id, type, title: decodeURIComponent(title), poster_path, year, rating, timestamp: Date.now() });
+    } else {
+        favorites.splice(index, 1);
+    }
+    localStorage.setItem('vidsrc_favorites', JSON.stringify(favorites));
+    renderFavorites();
+
+    // Re-render current grids to update heart icons (inefficient but works for now)
+    // A better way would be to toggle the class on the button directly
+    const btns = document.querySelectorAll(`.fav-btn[onclick*="${id}"]`);
+    btns.forEach(btn => {
+        btn.classList.toggle('active');
+        const svg = btn.querySelector('svg');
+        if (btn.classList.contains('active')) {
+            svg.setAttribute('fill', 'currentColor');
+        } else {
+            svg.setAttribute('fill', 'none');
+        }
+    });
+};
+
+function renderFavorites() {
+    const favSection = document.getElementById('favorites-section');
+    const favGrid = document.getElementById('favorites-grid');
+
+    if (favorites.length === 0) {
+        favSection.classList.add('hidden');
+        return;
+    }
+
+    favSection.classList.remove('hidden');
+    renderGrid(favorites, favGrid, null);
+    updateForYouVisibility();
+}
+
+// --- History Logic ---
+
+async function addToHistory(id, type) {
+    // We need details to save to history. 
+    // Since playContent only has ID and type, we might need to fetch details or find it in the DOM/memory.
+    // For simplicity, let's try to find it in the grids first, or fetch it.
+
+    let item = findItemInGrids(id);
+
+    if (!item) {
+        // Fetch details if not found
+        try {
+            const response = await fetch(`${BASE_URL}/${type}/${id}?api_key=${API_KEY}`);
+            item = await response.json();
+        } catch (e) {
+            console.error("Could not fetch item for history", e);
+            return;
+        }
+    }
+
+    if (!item) return;
+
+    const title = item.title || item.name;
+    const poster_path = item.poster_path;
+    const year = (item.release_date || item.first_air_date || '').split('-')[0];
+    const rating = item.vote_average ? item.vote_average.toFixed(1) : 'N/A';
+
+    // Remove if exists (to move to top)
+    const index = history.findIndex(h => h.id == id);
+    if (index !== -1) {
+        history.splice(index, 1);
+    }
+
+    history.unshift({ id, type, title, poster_path, year, rating, timestamp: Date.now() });
+
+    // Limit history to 50 items
+    if (history.length > 50) {
+        history.pop();
+    }
+
+    localStorage.setItem('vidsrc_history', JSON.stringify(history));
+    renderHistory();
+}
+
+function renderHistory() {
+    const histSection = document.getElementById('history-section');
+    const histGrid = document.getElementById('history-grid');
+
+    if (history.length === 0) {
+        histSection.classList.add('hidden');
+        return;
+    }
+
+    histSection.classList.remove('hidden');
+    renderGrid(history, histGrid, null);
+    updateForYouVisibility();
+}
+
+function updateForYouVisibility() {
+    const forYouContainer = document.getElementById('foryou-container');
+    const favSection = document.getElementById('favorites-section');
+    const histSection = document.getElementById('history-section');
+
+    const hasFavs = !favSection.classList.contains('hidden');
+    const hasHist = !histSection.classList.contains('hidden');
+
+    if (hasFavs || hasHist) {
+        forYouContainer.classList.remove('hidden');
+    } else {
+        forYouContainer.classList.add('hidden');
+    }
+}
+
+function findItemInGrids(id) {
+    // Helper to find item data from existing grids to avoid fetch
+    // This is a bit hacky as we don't store the full data objects in a global map, 
+    // but we can rely on fetch if needed. 
+    // Actually, let's just fetch it or rely on what we have.
+    // Since we don't have a global store of items, fetching is safer.
+    return null;
+}
+
 
 function getStreamUrl(tmdbId, type) {
     // type is 'movie' or 'tv'
