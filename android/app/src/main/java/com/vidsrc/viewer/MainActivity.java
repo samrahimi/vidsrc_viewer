@@ -52,7 +52,12 @@ public class MainActivity extends BridgeActivity {
             }
             // Force internal loading for http/https to prevent external browser
             if (url.startsWith("http://") || url.startsWith("https://")) {
-                return false;
+                if (url.contains("vidsrc.xyz") || url.contains("vidsrc-embed.ru"))
+                    view.loadUrl(url);
+                // don't load top level ad domains
+
+                
+                return true;
             }
             return super.shouldOverrideUrlLoading(view, request);
         }
