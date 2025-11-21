@@ -6,7 +6,9 @@ const IMAGE_ORIGINAL_URL = "https://image.tmdb.org/t/p/original";
 // Detect if running in Electron or Android (Native)
 const isElectron = navigator.userAgent.toLowerCase().includes('electron');
 const isAndroid = navigator.userAgent.toLowerCase().includes('android');
-const isNative = isElectron || isAndroid;
+//const isNative = isElectron || isAndroid;
+const isNative = true;
+
 
 // DOM Elements
 const moviesGrid = document.getElementById('trending-movies-grid');
