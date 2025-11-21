@@ -107,12 +107,7 @@ function setupEventListeners() {
     closeCategoryBtn.addEventListener('click', closeCategoryView);
     loadMoreCategoryBtn.addEventListener('click', loadMoreCategory);
 
-    // Favorites
-    document.getElementById('favorites-btn').addEventListener('click', () => {
-        const favSection = document.getElementById('favorites-section');
-        favSection.classList.remove('hidden');
-        favSection.scrollIntoView({ behavior: 'smooth' });
-    });
+
 
     // History
     document.getElementById('history-btn').addEventListener('click', () => {
@@ -325,11 +320,14 @@ function renderGrid(items, container, forcedType, shouldAppend = false) {
     items.forEach(item => {
         if (!item.poster_path) return; // Skip items without posters
 
-        const type = forcedType || item.media_type;
+        const type = forcedType || item.media_type || 'movie';
         const title = item.title || item.name;
         const year = (item.release_date || item.first_air_date || '').split('-')[0];
         const rating = item.vote_average ? item.vote_average.toFixed(1) : 'N/A';
         const posterUrl = `${IMAGE_BASE_URL}${item.poster_path}`;
+
+        // Get top 2 genres
+        const itemGenres = (item.genre_ids || []).slice(0, 2).map(id => genres[id]).filter(Boolean).join(', ');
 
         const card = document.createElement('div');
         card.className = 'media-card';
@@ -337,23 +335,145 @@ function renderGrid(items, container, forcedType, shouldAppend = false) {
 
         card.innerHTML = `
             <img src="${posterUrl}" alt="${title}" class="card-poster" loading="lazy">
-            <button class="fav-btn ${isFavorite(item.id) ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavorite('${item.id}', '${type}', '${encodeURIComponent(title)}', '${item.poster_path}', '${year}', '${rating}')">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="${isFavorite(item.id) ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                </svg>
-            </button>
+            <div class="card-actions">
+                <button class="btn-icon-small fav-btn ${isFavorite(item.id) ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavorite('${item.id}', '${type}', '${encodeURIComponent(title)}', '${item.poster_path}', '${year}', '${rating}')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="${isFavorite(item.id) ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                </button>
+                <button class="btn-icon-small info-btn" onclick="event.stopPropagation(); openInfoModal('${item.id}', '${type}')">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                </button>
+            </div>
             <div class="card-overlay">
                 <h3 class="card-title">${title}</h3>
                 <div class="card-meta">
                     <span>${year}</span>
                     <span class="rating">⭐ ${rating}</span>
                 </div>
+                <div class="card-details">
+                    <span class="card-genres">${itemGenres}</span>
+                    <span class="card-runtime" id="runtime-${item.id}">...</span>
+                </div>
             </div>
         `;
 
         container.appendChild(card);
+
+        // Fetch runtime asynchronously
+        fetchRuntime(item.id, type);
     });
 }
+
+async function fetchRuntime(id, type) {
+    try {
+        // Check if we already have it in cache/memory (optional optimization, skipping for now)
+        const response = await fetch(`${BASE_URL}/${type}/${id}?api_key=${API_KEY}`);
+        const data = await response.json();
+
+        let runtime = '';
+        if (type === 'movie') {
+            runtime = data.runtime ? `${data.runtime}m` : '';
+        } else {
+            // For TV, it's an array of runtimes, take average or first
+            if (data.episode_run_time && data.episode_run_time.length > 0) {
+                runtime = `${data.episode_run_time[0]}m`;
+            }
+        }
+
+        if (runtime) {
+            const el = document.getElementById(`runtime-${id}`);
+            if (el) el.textContent = runtime;
+        }
+    } catch (e) {
+        // console.error('Error fetching runtime', e);
+    }
+}
+
+window.openInfoModal = async function (id, type) {
+    const modalOverlay = document.getElementById('modal-overlay');
+    const modalBody = document.getElementById('modal-body');
+
+    modalBody.innerHTML = '<div class="loading-spinner">Loading...</div>';
+    modalOverlay.classList.remove('hidden');
+
+    try {
+        const response = await fetch(`${BASE_URL}/${type}/${id}?api_key=${API_KEY}&append_to_response=credits,videos`);
+        const data = await response.json();
+
+        const title = data.title || data.name;
+        const year = (data.release_date || data.first_air_date || '').split('-')[0];
+        const rating = data.vote_average ? data.vote_average.toFixed(1) : 'N/A';
+        const posterUrl = data.poster_path ? `${IMAGE_BASE_URL}${data.poster_path}` : '';
+        const backdropUrl = data.backdrop_path ? `${IMAGE_ORIGINAL_URL}${data.backdrop_path}` : '';
+        const overview = data.overview;
+        const genresList = data.genres.map(g => g.name).join(', ');
+        const cast = data.credits.cast.slice(0, 5).map(c => c.name).join(', ');
+
+        let runtime = '';
+        if (type === 'movie') {
+            runtime = data.runtime ? `${data.runtime} min` : '';
+        } else {
+            if (data.episode_run_time && data.episode_run_time.length > 0) {
+                runtime = `${data.episode_run_time[0]} min per ep`;
+            } else {
+                runtime = `${data.number_of_seasons} Seasons`;
+            }
+        }
+
+        modalBody.innerHTML = `
+            <div class="modal-layout">
+                <div class="modal-poster-container">
+                    <img src="${posterUrl}" alt="${title}" class="modal-poster">
+                </div>
+                <div class="modal-info">
+                    <h2 class="modal-title">${title}</h2>
+                    <div class="modal-meta">
+                        <span class="modal-year">${year}</span>
+                        <span class="modal-rating">⭐ ${rating}</span>
+                        <span class="modal-runtime">${runtime}</span>
+                    </div>
+                    <div class="modal-genres">${genresList}</div>
+                    
+                    <div class="modal-section">
+                        <h3>Overview</h3>
+                        <p class="modal-desc">${overview}</p>
+                    </div>
+                    
+                    <div class="modal-section">
+                        <h3>Starring</h3>
+                        <p class="modal-cast">${cast}</p>
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <button onclick="playContent('${id}', '${type}'); closeModal();" class="btn-primary">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                            Watch Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Add backdrop as background to modal content? Or just keep it clean.
+        // Let's keep it clean for now.
+
+    } catch (e) {
+        console.error('Error loading details', e);
+        modalBody.innerHTML = '<p class="error">Failed to load details.</p>';
+    }
+};
+
+window.closeModal = function () {
+    document.getElementById('modal-overlay').classList.add('hidden');
+    document.getElementById('modal-body').innerHTML = '';
+};
+
+// Add event listener for closing modal
+document.getElementById('close-modal').addEventListener('click', closeModal);
+document.getElementById('modal-overlay').addEventListener('click', (e) => {
+    if (e.target.id === 'modal-overlay') closeModal();
+});
 
 function showLoading(container) {
     container.innerHTML = `

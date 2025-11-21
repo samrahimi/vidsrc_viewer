@@ -50,3 +50,10 @@ Architecture: Save favorites LOCALLY using localStorage, load them into memory o
 [x] Each time a user clicks to watch a movie or series, append to the recently watched feed. Store recently watched feed LOCALLY using localStorage, load them into memory on app load. This is a single user applicaiton, so only one set of recently watched feed is needed! 
 
 [x] Then Display Recently Watched feed, newest first, in a recently watched feed section in homepage feeds (make UX flow similar to a category feed)
+
+
+
+### Item Tile Enrichment
+
+Current Behavior: Each item shown in feeds has the movie poster, and the title
+Desired Behavior: Each item shown in feeds has the movie poster, genre / genre / genre, release date, people starring, runtime, description, and the title. Each item should show the year, genre, and runtime always... and have an i for info icon that when tapped displays the rest of the information, including the description, in a nice scrolling modal. To get description, look at the hero image because that one has a description, and the old chatflix-integrated code will show you the field names for everything else i mention. 

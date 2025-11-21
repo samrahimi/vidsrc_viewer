@@ -430,10 +430,47 @@ body {
     background: rgba(255, 255, 255, 0.1);
 }
 
-.fav-btn {
+.card-actions {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 0.5rem;
+    left: 0.5rem;
+    right: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    z-index: 2;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.media-card:hover .card-actions {
+    opacity: 1;
+}
+
+.btn-icon-small {
+    background: rgba(0, 0, 0, 0.6);
+    border: none;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(4px);
+    pointer-events: auto;
+}
+
+.btn-icon-small:hover {
+    background: var(--accent-solid);
+    transform: scale(1.1);
+}
+
+.fav-btn {
+    /* Removed absolute positioning as it's now in flex container */
     background: rgba(0, 0, 0, 0.5);
     border: none;
     color: white;
@@ -459,9 +496,178 @@ body {
 }
 
 .fav-btn.active {
-    color: var(--accent-color);
-    opacity: 1;
-    /* Always show if active? Maybe */
+    color: var(--accent-solid);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.card-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+}
+
+.card-genres {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70%;
+}
+
+.card-runtime {
+    font-variant-numeric: tabular-nums;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+}
+
+.modal-content {
+    background: var(--bg-card);
+    border-radius: 1rem;
+    width: 100%;
+    max-width: 900px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.close-modal {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(0, 0, 0, 0.5);
+    border: none;
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.close-modal:hover {
+    background: var(--accent-solid);
+}
+
+.modal-layout {
+    display: flex;
+    gap: 2rem;
+    padding: 2rem;
+}
+
+.modal-poster-container {
+    flex-shrink: 0;
+    width: 300px;
+}
+
+.modal-poster {
+    width: 100%;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.modal-info {
+    flex-grow: 1;
+}
+
+.modal-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    line-height: 1.1;
+}
+
+.modal-meta {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+}
+
+.modal-rating {
+    color: #fbbf24;
+}
+
+.modal-genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+}
+
+.modal-section {
+    margin-bottom: 1.5rem;
+}
+
+.modal-section h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.modal-desc {
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+
+.modal-cast {
+    color: var(--text-secondary);
+}
+
+.modal-actions {
+    margin-top: 2rem;
+}
+
+@media (max-width: 768px) {
+    .modal-layout {
+        flex-direction: column;
+        padding: 1.5rem;
+    }
+
+    .modal-poster-container {
+        width: 100%;
+        max-width: 250px;
+        margin: 0 auto;
+    }
+
+    .modal-title {
+        font-size: 1.75rem;
+        text-align: center;
+    }
+
+    .modal-meta {
+        justify-content: center;
+        font-size: 1rem;
+    }
+
+    .modal-genres {
+        justify-content: center;
+    }
 }
 
 .fav-btn svg {
