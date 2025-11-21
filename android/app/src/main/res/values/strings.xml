@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Vidsrc Viewer</string>
+    <string name="title_activity_main">Vidsrc Viewer</string>
+    <string name="package_name">com.vidsrc.viewer</string>
+    <string name="custom_url_scheme">com.vidsrc.viewer</string>
+</resources>

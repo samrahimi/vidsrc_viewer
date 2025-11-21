@@ -29,7 +29,7 @@ body {
 }
 
 .app-container {
-    max-width: 1920px;
+    max-width: 1600px;
     margin: 0 auto;
     padding: 0 2rem;
 }
@@ -425,22 +425,16 @@ body {
 
 /* View More Link */
 .view-more {
-    background: var(--bg-secondary);
-    color: var(--text-secondary);
+    color: var(--accent-solid);
     text-decoration: none;
     font-size: 0.9rem;
     font-weight: 500;
-    padding: 0.4rem 1rem;
-    border-radius: 20px;
-    transition: all 0.2s;
-    border: 1px solid transparent;
+    transition: color 0.2s;
 }
 
 .view-more:hover {
-    background: #333;
-    color: white;
-    text-decoration: none;
-    border-color: #444;
+    color: #9b6bcc;
+    text-decoration: underline;
 }
 
 /* Responsive */

@@ -10,9 +10,9 @@ echo "Creating DMG Installer"
 echo "======================================"
 echo ""
 
-APP_NAME="VidsrcViewer"
-APP_PATH="dist/VidsrcViewer-darwin-x64/VidsrcViewer.app"
-DMG_NAME="VidsrcViewer-Installer"
+APP_NAME="Vidsrc"
+APP_PATH="dist/Vidsrc-darwin-x64/Vidsrc.app"
+DMG_NAME="Vidsrc-Installer"
 OUTPUT_DIR="dist"
 
 # Check if the app exists
@@ -35,10 +35,10 @@ fi
 npx create-dmg "$APP_PATH" "$OUTPUT_DIR" \
     --overwrite \
     --volicon="icon.icns" \
-    --dmg-title="Vidsrc Viewer" || true
+    --dmg-title="Vidsrc" || true
 
 # create-dmg generates a file with the app name, let's rename it
-GENERATED_DMG=$(find "$OUTPUT_DIR" -maxdepth 1 -name "VidsrcViewer*.dmg" -type f | head -n 1)
+GENERATED_DMG=$(find "$OUTPUT_DIR" -maxdepth 1 -name "Vidsrc*.dmg" -type f | head -n 1)
 
 if [ -n "$GENERATED_DMG" ]; then
     mv "$GENERATED_DMG" "$OUTPUT_DIR/$DMG_NAME.dmg"
@@ -52,7 +52,7 @@ if [ -n "$GENERATED_DMG" ]; then
     echo "Users can now:"
     echo "  1. Download the DMG file"
     echo "  2. Open it"
-    echo "  3. Drag VidsrcViewer to Applications"
+    echo "  3. Drag Vidsrc to Applications"
     echo "  4. Launch from Applications or Spotlight"
     echo ""
     echo "Note: The vidsrc:// protocol will be registered"
