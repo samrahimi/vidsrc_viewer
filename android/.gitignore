@@ -1,7 +1,7 @@
 # Using Android gitignore template: https://github.com/github/gitignore/blob/HEAD/Android.gitignore
 
 # Built application files
-*.apk
+# *.apk yes we allow the APKs
 *.aar
 *.ap_
 *.aab
