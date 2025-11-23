@@ -13,6 +13,7 @@ function createWindow() {
             sandbox: true,
             preload: path.join(__dirname, 'preload.js'),
         },
+        icon: path.join(__dirname, 'icon.png'),
     });
 
     // CRITICAL: Block ALL new windows/tabs

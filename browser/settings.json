@@ -1,0 +1,4 @@
+{
+    "playerUrlTemplateMovie": "vidsrc.xyz/embed/movie/{tmdbId}",
+    "playerUrlTemplateTv": "vidsrc.xyz/embed/tv/{tmdbId}"
+}

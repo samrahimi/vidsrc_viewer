@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Config Test</title>
+    <script src="config.js"></script>
+</head>
+
+<body>
+    <h1>Config Test</h1>
+    <div id="output">Loading...</div>
+    <script>
+        window.loadConfig().then(config => {
+            const output = document.getElementById('output');
+            output.textContent = JSON.stringify(config, null, 2);
+            console.log('Config loaded:', config);
+        });
+    </script>
+</body>
+
+</html>

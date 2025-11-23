@@ -16,6 +16,17 @@ public class MainActivity extends BridgeActivity {
 
         WebView webView = getBridge().getWebView();
         webView.setWebViewClient(new CustomWebViewClient(getBridge()));
+        webView.setWebChromeClient(new CustomWebChromeClient());
+        
+        // Hide system bars (Immersive Mode)
+        getWindow().getDecorView().setSystemUiVisibility(
+            android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+            | android.view.View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+            | android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            | android.view.View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+            | android.view.View.SYSTEM_UI_FLAG_FULLSCREEN
+            | android.view.View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+            
         handleIntent(getIntent());
     }
 
@@ -60,6 +71,53 @@ public class MainActivity extends BridgeActivity {
                 return true;
             }
             return super.shouldOverrideUrlLoading(view, request);
+        }
+    }
+
+    private class CustomWebChromeClient extends android.webkit.WebChromeClient {
+        private android.view.View mCustomView;
+        private android.webkit.WebChromeClient.CustomViewCallback mCustomViewCallback;
+        private int mOriginalOrientation;
+        private int mOriginalSystemUiVisibility;
+
+        @Override
+        public void onShowCustomView(android.view.View view, android.webkit.WebChromeClient.CustomViewCallback callback) {
+            if (mCustomView != null) {
+                onHideCustomView();
+                return;
+            }
+
+            mCustomView = view;
+            mOriginalSystemUiVisibility = getWindow().getDecorView().getSystemUiVisibility();
+            mOriginalOrientation = getRequestedOrientation();
+
+            mCustomViewCallback = callback;
+
+            android.widget.FrameLayout decor = (android.widget.FrameLayout) getWindow().getDecorView();
+            decor.addView(mCustomView, new android.widget.FrameLayout.LayoutParams(
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT));
+
+            getWindow().getDecorView().setSystemUiVisibility(
+                    android.view.View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
+                            android.view.View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
+                            android.view.View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
+                            android.view.View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
+                            android.view.View.SYSTEM_UI_FLAG_FULLSCREEN |
+                            android.view.View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
+        }
+
+        @Override
+        public void onHideCustomView() {
+            android.widget.FrameLayout decor = (android.widget.FrameLayout) getWindow().getDecorView();
+            decor.removeView(mCustomView);
+            mCustomView = null;
+
+            getWindow().getDecorView().setSystemUiVisibility(mOriginalSystemUiVisibility);
+            setRequestedOrientation(mOriginalOrientation);
+
+            mCustomViewCallback.onCustomViewHidden();
+            mCustomViewCallback = null;
         }
     }
 }

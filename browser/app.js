@@ -55,6 +55,8 @@ $(document).ready(function () {
     initApp();
 });
 async function initApp() {
+    await window.loadConfig();
+
     if (isNative) {
         appBadge.classList.remove('hidden');
         if (isAndroid) appBadge.innerHTML = '<span class="badge-dot"></span> Android App';
@@ -498,8 +500,11 @@ window.playContent = function (tmdbId, type) {
     // Add to history
     addToHistory(tmdbId, type);
 
-    if (isNative) {
-        // In Native (Electron/Android), we want to navigate the main window or trigger the protocol handler
+    if (isAndroid) {
+        // On Android, redirect to watch.html
+        window.location.href = `watch.html?tmdbId=${tmdbId}&type=${type}`;
+    } else if (isNative) {
+        // In Electron, we want to navigate the main window or trigger the protocol handler
         // Since this page IS the default view, clicking should probably navigate the current window
         // OR if we want to trigger the 'vidsrc://' handler which might open a new window/process depending on main.js
         // But usually window.location.href works for protocols if registered.
@@ -641,12 +646,16 @@ function findItemInGrids(id) {
 
 function getStreamUrl(tmdbId, type) {
     // type is 'movie' or 'tv'
-    // vidsrc://vidsrc.xyz/embed/movie/{tmdbId}
-    // vidsrc://vidsrc.xyz/embed/tv/{tmdbId}
+    // Template: vidsrc.xyz/embed/movie/{tmdbId}
 
-    const path = `vidsrc.xyz/embed/${type}/${tmdbId}`;
+    let template = type === 'movie'
+        ? window.AppConfig.playerUrlTemplateMovie
+        : window.AppConfig.playerUrlTemplateTv;
 
-    if (isNative) {
+    // Replace placeholders
+    const path = template.replace('{tmdbId}', tmdbId);
+
+    if (false) {
         return `vidsrc://${path}`;
     } else {
         // For web preview, we can't really "play" it without the app, 

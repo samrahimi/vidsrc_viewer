@@ -7,17 +7,27 @@
         "start": "electron .",
         "package": "electron-packager . Vidsrc --platform=darwin --arch=x64 --overwrite --protocol=vidsrc --protocol-name=\"Vidsrc\" --out=dist --icon=icon.icns",
         "build-dmg": "npm run package && ./create_dmg.sh",
+        "build-windows": "electron-packager . Vidsrc --platform=win32 --arch=x64 --overwrite --protocol=vidsrc --protocol-name=\"Vidsrc\" --out=dist --icon=icon.ico",
+        "build-installer-windows": "electron-builder --win nsis",
         "build:android": "npx cap sync android",
         "open:android": "npx cap open android"
     },
     "author": "",
     "license": "ISC",
     "devDependencies": {
-        "create-dmg": "^6.0.0",
         "electron": "^33.2.0",
+        "electron-builder": "^26.0.12",
         "electron-packager": "^17.1.2"
     },
+    "optionalDependencies": {
+        "create-dmg": "^6.0.0"
+    },
     "build": {
+        "appId": "com.vidsrc.viewer",
+        "win": {
+            "target": "nsis",
+            "icon": "icon.ico"
+        },
         "protocols": [
             {
                 "name": "Vidsrc",
