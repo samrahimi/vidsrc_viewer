@@ -1,0 +1,52 @@
+name: Build Electron App
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        # This creates three separate jobs: one for each OS
+        os: [macos-latest, ubuntu-latest, windows-latest]
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+
+      # If you have a React/Vue/Angular build step, uncomment the line below
+      # - name: Build Frontend
+      #   run: npm run build
+
+      - name: Build/Release Electron App
+        env:
+          # GitHub sets this automatically, needed for publishing
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+        # This runs 'electron-builder' (requires "dist" script in package.json)
+        run: npm run dist
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }}-installer
+          path: |
+            dist/*.exe
+            dist/*.dmg
+            dist/*.AppImage
+            dist/*.snap
+            dist/*.deb
+          retention-days: 5

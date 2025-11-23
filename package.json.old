@@ -1,0 +1,58 @@
+{
+    "name": "vidsrc-viewer",
+    "version": "1.0.0",
+    "description": "A popup-free viewer for vidsrc.xyz",
+    "main": "main.js",
+    "scripts": {
+        "start": "electron-forge start",
+        "package": "electron-forge package",
+        "build-dmg": "npm run package && ./create_dmg.sh",
+        "build:android": "npx cap sync android",
+        "open:android": "npx cap open android",
+        "make": "electron-forge make",
+        "make:windows": "electron-forge make --platform=win32 --arch=x64",
+        "make:linux": "electron-forge make --platform=linux --arch=x64",
+        "make:all": "npm run make:linux && npm run make:windows",
+        "build:portable": "electron-builder --win --linux --mac"
+    },
+    "author": "",
+    "license": "ISC",
+    "build": {
+        "appId": "com.vidsrc.viewer",
+        "productName": "VidSrc Viewer",
+        "win": {
+            "target": "portable",
+            "icon": "icon.ico"
+        },
+        "linux": {
+            "target": "AppImage",
+            "icon": "icon.png",
+            "category": "Video"
+        },
+        "mac": {
+            "target": "dmg",
+            "icon": "icon.icns"
+        }
+    },
+    "devDependencies": {
+        "@electron-forge/cli": "^7.10.2",
+        "@electron-forge/maker-deb": "^7.10.2",
+        "@electron-forge/maker-rpm": "^7.10.2",
+        "@electron-forge/maker-squirrel": "^7.10.2",
+        "@electron-forge/maker-zip": "^7.10.2",
+        "@electron-forge/plugin-auto-unpack-natives": "^7.10.2",
+        "@electron-forge/plugin-fuses": "^7.10.2",
+        "@electron/fuses": "^1.8.0",
+        "electron": "^33.2.0",
+        "electron-builder": "^25.1.8"
+    },
+    "optionalDependencies": {
+        "create-dmg": "^6.0.0"
+    },
+    "dependencies": {
+        "@capacitor/android": "^7.4.4",
+        "@capacitor/cli": "^7.4.4",
+        "@capacitor/core": "^7.4.4",
+        "electron-squirrel-startup": "^1.0.1"
+    }
+}
