@@ -663,3 +663,158 @@ function getStreamUrl(tmdbId, type) {
         return `https://${path}`;
     }
 }
+
+// --- Electron IPC & Menu Handlers ---
+
+if (window.electronAPI) {
+    window.electronAPI.onMenuAction((action) => {
+        console.log('Menu action received:', action);
+        switch (action) {
+            case 'clear-history':
+                confirmClearHistory();
+                break;
+            case 'clear-favorites':
+                confirmClearFavorites();
+                break;
+            case 'show-faq':
+                showFAQ();
+                break;
+            case 'show-support':
+                showSupport();
+                break;
+        }
+    });
+}
+
+// Fullscreen Toggle
+const fullscreenToggleBtn = document.getElementById('fullscreen-toggle');
+if (fullscreenToggleBtn) {
+    fullscreenToggleBtn.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.error(`Error attempting to enable fullscreen: ${err.message}`);
+            });
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+    });
+
+    // Update icon on change
+    document.addEventListener('fullscreenchange', () => {
+        const isFullscreen = !!document.fullscreenElement;
+        const svg = fullscreenToggleBtn.querySelector('svg');
+        if (isFullscreen) {
+            // Change to exit fullscreen icon
+            svg.innerHTML = '<path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>';
+        } else {
+            // Change to enter fullscreen icon
+            svg.innerHTML = '<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>';
+        }
+    });
+}
+
+// --- Modals for Menu Actions ---
+
+function showModal(title, content, actions = []) {
+    const modalOverlay = document.getElementById('modal-overlay');
+    const modalBody = document.getElementById('modal-body');
+
+    let actionsHtml = '';
+    if (actions.length > 0) {
+        actionsHtml = `<div class="modal-actions" style="margin-top: 20px; justify-content: flex-end; gap: 10px;">
+            ${actions.map(a => `<button class="${a.class || 'btn-secondary'}" onclick="${a.onclick}">${a.label}</button>`).join('')}
+        </div>`;
+    }
+
+    modalBody.innerHTML = `
+        <div class="modal-layout" style="display: block;">
+            <h2 class="modal-title" style="margin-bottom: 15px;">${title}</h2>
+            <div class="modal-content-text" style="line-height: 1.6; color: #ccc;">
+                ${content}
+            </div>
+            ${actionsHtml}
+        </div>
+    `;
+
+    modalOverlay.classList.remove('hidden');
+}
+
+function confirmClearHistory() {
+    showModal(
+        'Clear Watch History',
+        '<p>Are you sure you want to delete your entire watch history? This cannot be undone.</p>',
+        [
+            { label: 'Cancel', onclick: 'closeModal()', class: 'btn-secondary' },
+            { label: 'Clear History', onclick: 'performClearHistory()', class: 'btn-primary' } // Red color would be nice but using primary for now
+        ]
+    );
+}
+
+window.performClearHistory = function () {
+    localStorage.removeItem('vidsrc_history');
+    history = [];
+    renderHistory();
+    closeModal();
+    // Optional: Show success toast/alert
+    // alert('History cleared');
+};
+
+function confirmClearFavorites() {
+    showModal(
+        'Clear Favorites',
+        '<p>Are you sure you want to delete all your favorites? This cannot be undone.</p>',
+        [
+            { label: 'Cancel', onclick: 'closeModal()', class: 'btn-secondary' },
+            { label: 'Clear Favorites', onclick: 'performClearFavorites()', class: 'btn-primary' }
+        ]
+    );
+}
+
+window.performClearFavorites = function () {
+    localStorage.removeItem('vidsrc_favorites');
+    favorites = [];
+    renderFavorites();
+    closeModal();
+};
+
+function showFAQ() {
+    const faqContent = `
+        <div class="faq-item" style="margin-bottom: 20px;">
+            <h3 style="color: white; margin-bottom: 5px;">Difficulty installing on macOS?</h3>
+            <p>If you see a warning about the app not being signed by a verified developer, you can bypass this by running the following command in your terminal:</p>
+            <code style="display: block; background: #222; padding: 10px; border-radius: 5px; margin-top: 5px; user-select: text;">xattr -cr /Applications/Chatflix.app</code>
+        </div>
+        <div class="faq-item" style="margin-bottom: 20px;">
+            <h3 style="color: white; margin-bottom: 5px;">Blocked by Windows SmartScreen?</h3>
+            <p>If Windows SmartScreen blocks the app, click "More info" and then "Run anyway". This happens because we are an independent developer without a costly code signing certificate.</p>
+        </div>
+        <div class="faq-item" style="margin-bottom: 20px;">
+            <h3 style="color: white; margin-bottom: 5px;">Is this safe?</h3>
+            <p>Chatflix is a specialized web browser that streams content while stripping out ads, popups, and malicious links found on streaming sites. It is significantly safer than browsing these sites directly.</p>
+        </div>
+        <div class="faq-item" style="margin-bottom: 20px;">
+            <h3 style="color: white; margin-bottom: 5px;">Is this legal?</h3>
+            <p>Chatflix does not host any content. It is a streaming tool. No files are downloaded to your device (no P2P/torrents). All history and favorites are stored locally on your machine and can be cleared at any time.</p>
+        </div>
+    `;
+    showModal('Frequently Asked Questions', faqContent, [{ label: 'Close', onclick: 'closeModal()', class: 'btn-secondary' }]);
+}
+
+function showSupport() {
+    const supportContent = `
+        <p style="margin-bottom: 15px;">We welcome donations to support development!</p>
+        <div style="text-align: center; margin: 20px 0;">
+            <!-- Placeholder for QR Code -->
+            <div style="width: 150px; height: 150px; background: white; margin: 0 auto; display: flex; align-items: center; justify-content: center; color: black;">
+                QR Code
+            </div>
+            <p style="margin-top: 10px; font-family: monospace; background: #222; padding: 10px; border-radius: 5px; word-break: break-all; user-select: text;">
+                0x0000000000000000000000000000000000000000
+            </p>
+            <p style="font-size: 0.9em; color: #888; margin-top: 5px;">Accepting ETH, ERC-20 tokens, and NFTs.</p>
+        </div>
+    `;
+    showModal('Support Our Work', supportContent, [{ label: 'Close', onclick: 'closeModal()', class: 'btn-secondary' }]);
+}

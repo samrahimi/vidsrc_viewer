@@ -1,4 +1,9 @@
-const { ipcRenderer } = require('electron');
+const { ipcRenderer, contextBridge } = require('electron');
+
+contextBridge.exposeInMainWorld('electronAPI', {
+    onMenuAction: (callback) => ipcRenderer.on('menu-action', (event, action) => callback(action)),
+    navigateHome: () => ipcRenderer.send('navigate-home')
+});
 
 window.addEventListener('DOMContentLoaded', () => {
     // Only inject if we are on a remote page (http/https)
@@ -76,6 +81,8 @@ function injectHomeButton() {
     button.addEventListener('click', (e) => {
         e.stopPropagation();
         e.preventDefault();
-        ipcRenderer.send('navigate-home');
+        if (window.electronAPI) {
+            window.electronAPI.navigateHome();
+        }
     });
 }
