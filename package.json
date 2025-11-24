@@ -3,6 +3,7 @@
     "version": "1.0.0",
     "main": "main.js",
     "scripts": {
+        "build:android": "npx cap sync android",
         "start": "electron .",
         "build": "echo 'Ready to go!",
         "dist": "electron-builder"
@@ -24,5 +25,10 @@
     "devDependencies": {
         "electron": "^28.0.0",
         "electron-builder": "^24.13.3"
+    },
+    "dependencies": {
+        "@capacitor/android": "^7.4.4",
+        "@capacitor/cli": "^7.4.4",
+        "@capacitor/core": "^7.4.4"
     }
 }
