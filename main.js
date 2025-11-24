@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, session } = require('electron');
 const path = require('path');
 
 let startupUrl;
@@ -68,6 +68,17 @@ if (!gotTheLock) {
     });
 
     app.whenReady().then(() => {
+        // Log all network requests
+        session.defaultSession.webRequest.onResponseStarted((details) => {
+            const { url, method, responseHeaders } = details;
+            // Content-Type header keys can be case-insensitive, but Electron usually normalizes them or provides them as is.
+            // Let's try to find it case-insensitively just in case.
+            const contentTypeKey = Object.keys(responseHeaders).find(key => key.toLowerCase() === 'content-type');
+            const contentType = contentTypeKey ? responseHeaders[contentTypeKey][0] : 'unknown';
+
+            console.log(`[Network] ${method} ${url} (${contentType})`);
+        });
+
         createWindow();
 
         app.on('activate', () => {

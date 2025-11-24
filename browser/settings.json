@@ -1,4 +1,4 @@
 {
-    "playerUrlTemplateMovie": "vidsrc.xyz/embed/movie/{tmdbId}",
-    "playerUrlTemplateTv": "vidsrc.xyz/embed/tv/{tmdbId}"
+    "playerUrlTemplateMovie": "https://vidsrc.cc/v2/embed/movie/{tmdbId}?autoplay=true",
+    "playerUrlTemplateTv": "https://vidsrc.xyz/embed/tv/{tmdbId}?autoplay=true"
 }

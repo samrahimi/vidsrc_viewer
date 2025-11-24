@@ -654,14 +654,8 @@ function getStreamUrl(tmdbId, type) {
 
     // Replace placeholders
     const path = template.replace('{tmdbId}', tmdbId);
+    return path
 
-    if (false) {
-        return `vidsrc://${path}`;
-    } else {
-        // For web preview, we can't really "play" it without the app, 
-        // but let's return the https link so it works in browser too if they want
-        return `https://${path}`;
-    }
 }
 
 // --- Electron IPC & Menu Handlers ---
