@@ -47,6 +47,12 @@ body {
     backdrop-filter: blur(10px);
 }
 
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 .logo {
     font-size: 2rem;
     font-weight: 700;

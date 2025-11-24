@@ -81,8 +81,6 @@ function injectHomeButton() {
     button.addEventListener('click', (e) => {
         e.stopPropagation();
         e.preventDefault();
-        if (window.electronAPI) {
-            window.electronAPI.navigateHome();
-        }
+        ipcRenderer.send('navigate-home');
     });
 }
