@@ -1,6 +1,6 @@
 window.AppConfig = {
     playerUrlTemplateMovie: "https://vidsrc.xyz/embed/movie/{tmdbId}",
-    playerUrlTemplateTv: "https://vidsrc.xyz/embed/tv/{tmdbId}"
+    playerUrlTemplateTv: "https://vidsrc.xyz/embed/tv/{tmdbId}",
 };
 
 window.loadConfig = async function () {
