@@ -150,6 +150,10 @@ function createMenu(win) {
                     label: 'Clear Favorites',
                     click: () => win.webContents.send('menu-action', 'clear-favorites')
                 },
+                {
+                    label: 'My Activity',
+                    click: () => win.webContents.send('menu-action', 'export-activity')
+                },
                 isMac ? { role: 'close' } : { role: 'quit' },
                 { type: 'separator' },
                 { role: 'quit' }

@@ -345,7 +345,7 @@ function renderGrid(items, container, forcedType, shouldAppend = false) {
             <div class="card-actions">
                 <button class="btn-icon-small fav-btn ${isFavorite(item.id) ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavorite('${item.id}', '${type}', '${encodeURIComponent(title)}', '${item.poster_path}', '${year}', '${rating}')">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="${isFavorite(item.id) ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
                     </svg>
                 </button>
                 <button class="btn-icon-small info-btn" onclick="event.stopPropagation(); openInfoModal('${item.id}', '${type}')">
@@ -500,21 +500,8 @@ window.playContent = function (tmdbId, type) {
     // Add to history
     addToHistory(tmdbId, type);
 
-    if (isAndroid) {
-        // On Android, redirect to watch.html
-        window.location.href = `watch.html?tmdbId=${tmdbId}&type=${type}`;
-    } else if (isNative) {
-        // In Electron, we want to navigate the main window or trigger the protocol handler
-        // Since this page IS the default view, clicking should probably navigate the current window
-        // OR if we want to trigger the 'vidsrc://' handler which might open a new window/process depending on main.js
-        // But usually window.location.href works for protocols if registered.
-        window.location.href = url;
-    } else {
-        // In browser, we might want to just open it, but since vidsrc:// isn't a real web protocol,
-        // we should probably just log it or show an alert, OR if the user has the app installed it might work.
-        // For this "happy path" web preview, let's just try to open it.
-        window.location.href = url;
-    }
+    // Always use watch.html to ensure metrics and overlays work
+    window.location.href = `watch.html?tmdbId=${tmdbId}&type=${type}`;
 };
 
 // --- Favorites Logic ---
@@ -676,6 +663,9 @@ if (window.electronAPI) {
             case 'show-support':
                 showSupport();
                 break;
+            case 'export-activity':
+                exportActivity();
+                break;
         }
     });
 }
@@ -812,3 +802,31 @@ function showSupport() {
     `;
     showModal('Support Our Work', supportContent, [{ label: 'Close', onclick: 'closeModal()', class: 'btn-secondary' }]);
 }
+
+function exportActivity() {
+    const data = {};
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        data[key] = localStorage.getItem(key);
+    }
+
+    // Try to parse JSON strings back to objects for cleaner output
+    for (const key in data) {
+        try {
+            data[key] = JSON.parse(data[key]);
+        } catch (e) {
+            // Keep as string if not valid JSON
+        }
+    }
+
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `vidsrc-activity-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
