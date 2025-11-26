@@ -5,6 +5,10 @@ const BASE_URL = "https://api.themoviedb.org/3";
 const messagesContainer = document.getElementById('messages-container');
 const chatInput = document.getElementById('chat-input');
 const sendBtn = document.getElementById('send-btn');
+const newChatBtn = document.getElementById('new-chat-btn');
+
+const MAX_TURNS_PER_CONVERSATION = 10; // Configurable limit
+let turnCount = 0;
 
 // Fetch genres map for mapping IDs to names
 let genres = {};
@@ -93,10 +97,38 @@ sendBtn.addEventListener('click', sendMessage);
 chatInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') sendMessage();
 });
+newChatBtn.addEventListener('click', startNewChat);
+
+function startNewChat() {
+    // If history is empty (just system message), do nothing
+    if (conversationHistory.length <= 1) return;
+
+    // Reset history
+    conversationHistory = [conversationHistory[0]]; // Keep system message
+
+    // Clear UI
+    messagesContainer.innerHTML = '';
+
+    // Reset turns
+    turnCount = 0;
+
+    // Enable input
+    chatInput.disabled = false;
+    sendBtn.disabled = false;
+    chatInput.placeholder = "Ask for a movie...";
+
+    // Add greeting
+    appendMessage('assistant', "Hello! I'm your Chatflix concierge. I can help you find movies and TV shows to watch. What are you in the mood for?");
+}
 
 async function sendMessage() {
     const text = chatInput.value.trim();
     if (!text) return;
+
+    // Check max turns
+    if (turnCount >= MAX_TURNS_PER_CONVERSATION) {
+        return; // Should be disabled, but just in case
+    }
 
     // Add user message
     appendMessage('user', text);
@@ -168,6 +200,17 @@ async function processChat() {
         // Final response
         conversationHistory.push(message);
         appendMessage('assistant', message.content);
+
+        // Increment turn count (1 turn = user message + assistant response)
+        turnCount++;
+
+        // Check limit
+        if (turnCount >= MAX_TURNS_PER_CONVERSATION) {
+            chatInput.disabled = true;
+            sendBtn.disabled = true;
+            chatInput.placeholder = "Max length reached.";
+            appendMessage('system', "Max length reached, click + to start a new chat");
+        }
     }
 }
 

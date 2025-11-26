@@ -57,6 +57,25 @@
             color: var(--primary-color);
         }
 
+        #new-chat-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--text-color);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        #new-chat-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
         .chat-messages {
             flex: 1;
             overflow-y: auto;
@@ -353,6 +372,13 @@
             </svg>
             Chatflix AI
         </div>
+        <button id="new-chat-btn" class="icon-btn" aria-label="New Chat" title="Start New Conversation">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+        </button>
     </header>
 
     <div class="chat-messages" id="messages-container">
