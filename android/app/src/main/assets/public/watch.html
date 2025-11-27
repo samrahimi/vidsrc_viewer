@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Watch - Vidsrc</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="config.js"></script>
+    <style>
+        body {
+            background-color: #000;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .player-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            position: relative;
+            width: 100%;
+            height: 100vh;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Overlays */
+        .overlay-panel {
+            position: absolute;
+            display: flex;
+            gap: 0.5rem;
+            z-index: 20;
+            transition: opacity 0.5s ease-in-out;
+            opacity: 1;
+        }
+
+        .overlay-panel.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .overlay-top-right {
+            top: 20px;
+            right: 20px;
+            flex-direction: row-reverse;
+            /* Home on right */
+        }
+
+        .overlay-bottom-left {
+            bottom: 80px;
+            left: 20px;
+        }
+
+        .overlay-bottom-right {
+            bottom: 80px;
+            right: 20px;
+        }
+
+        /* Buttons */
+        .btn-overlay {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .btn-overlay:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+
+        .btn-overlay.active {
+            background: rgba(255, 255, 255, 0.4);
+            color: #fff;
+        }
+
+        .btn-overlay.like-btn.active {
+            color: #4CAF50;
+            background: rgba(76, 175, 80, 0.2);
+            border-color: #4CAF50;
+        }
+
+        .btn-overlay.dislike-btn.active {
+            color: #F44336;
+            background: rgba(244, 67, 54, 0.2);
+            border-color: #F44336;
+        }
+
+        .btn-overlay.bookmark-btn.active {
+            color: #FFD700;
+            /* Gold */
+            fill: currentColor;
+        }
+
+        /* Chat Container */
+        #chat-container {
+            position: absolute;
+            bottom: 80px;
+            right: 20px;
+            width: 350px;
+            height: 500px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 30;
+            overflow: hidden;
+            display: none;
+            /* Hidden by default */
+        }
+
+        #chat-container.visible {
+            display: block;
+        }
+
+        #chat-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Modal Styles (Ported) */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-content {
+            background: #1a1a1a;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border: none;
+            color: white;
+            font-size: 24px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-layout {
+            display: flex;
+            gap: 2rem;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .modal-poster {
+            width: 250px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-info {
+            flex: 1;
+        }
+
+        .modal-title {
+            margin: 0 0 0.5rem 0;
+            font-size: 2rem;
+        }
+
+        .modal-meta {
+            display: flex;
+            gap: 1rem;
+            color: #aaa;
+            margin-bottom: 1rem;
+            align-items: center;
+        }
+
+        .modal-rating {
+            color: #ffd700;
+        }
+
+        .modal-genres {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-desc {
+            line-height: 1.6;
+            color: #ddd;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .modal-layout {
+                flex-direction: column;
+            }
+
+            .modal-poster {
+                width: 150px;
+                margin: 0 auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="player-container">
+        <iframe id="video-player" allowfullscreen></iframe>
+
+        <!-- Top Right Panel: Home, Bookmark, Info -->
+        <div class="overlay-panel overlay-top-right" id="panel-top-right">
+            <button id="home-btn" class="btn-overlay" aria-label="Home">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+            </button>
+            <button id="bookmark-btn" class="btn-overlay bookmark-btn" aria-label="Bookmark">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2-2z"></path>
+                </svg>
+            </button>
+            <button id="info-btn" class="btn-overlay" aria-label="Info">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Bottom Left Panel: Like, Dislike -->
+        <div class="overlay-panel overlay-bottom-left" id="panel-bottom-left">
+            <button id="like-btn" class="btn-overlay like-btn" aria-label="Like">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                        d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3">
+                    </path>
+                </svg>
+            </button>
+            <button id="dislike-btn" class="btn-overlay dislike-btn" aria-label="Dislike">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                        d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17">
+                    </path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Bottom Right Panel: Chat Toggle -->
+        <div class="overlay-panel overlay-bottom-right" id="panel-bottom-right">
+            <button id="chat-toggle-btn" class="btn-overlay" aria-label="Chat">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Chat Container -->
+        <div id="chat-container">
+            <iframe id="chat-iframe" src="chat.html"></iframe>
+        </div>
+    </div>
+
+    <!-- Info Modal -->
+    <div id="modal-overlay" class="modal-overlay">
+        <div class="modal-content">
+            <button id="close-modal" class="close-modal">×</button>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_KEY = "829a43a98259bc44cae297489c7e3bba";
+        const BASE_URL = "https://api.themoviedb.org/3";
+        const IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
+        const IMAGE_ORIGINAL_URL = "https://image.tmdb.org/t/p/original";
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const tmdbId = urlParams.get('tmdbId');
+        const type = urlParams.get('type');
+
+        const player = document.getElementById('video-player');
+        const homeBtn = document.getElementById('home-btn');
+        const bookmarkBtn = document.getElementById('bookmark-btn');
+        const infoBtn = document.getElementById('info-btn');
+        const likeBtn = document.getElementById('like-btn');
+        const dislikeBtn = document.getElementById('dislike-btn');
+        const chatToggleBtn = document.getElementById('chat-toggle-btn');
+        const chatContainer = document.getElementById('chat-container');
+
+        const panels = document.querySelectorAll('.overlay-panel');
+
+        // --- Inactivity Timer ---
+        let inactivityTimer;
+        const INACTIVITY_DELAY = 10000; // 10 seconds
+
+        function resetInactivityTimer() {
+            // Show panels
+            panels.forEach(p => p.classList.remove('hidden'));
+            document.body.style.cursor = 'default';
+
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(() => {
+                // Hide panels
+                panels.forEach(p => p.classList.add('hidden'));
+                document.body.style.cursor = 'none'; // Optional: hide cursor too
+            }, INACTIVITY_DELAY);
+        }
+
+        // Listen for user activity
+        ['mousemove', 'mousedown', 'keydown', 'touchstart'].forEach(evt => {
+            document.addEventListener(evt, resetInactivityTimer);
+        });
+
+        // Initial start
+        resetInactivityTimer();
+
+
+        // --- Player Setup ---
+        (async () => {
+            await window.loadConfig();
+
+            if (tmdbId && type) {
+                let template = type === 'movie'
+                    ? window.AppConfig.playerUrlTemplateMovie
+                    : window.AppConfig.playerUrlTemplateTv;
+
+                const path = template.replace('{tmdbId}', tmdbId);
+                // Template already includes protocol
+                player.src = path;
+
+                initializeSession(tmdbId, type);
+            }
+        })();
+
+        // --- Navigation & Buttons ---
+        homeBtn.addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+
+        chatToggleBtn.addEventListener('click', () => {
+            chatContainer.classList.toggle('visible');
+            const isVisible = chatContainer.classList.contains('visible');
+            // Update icon
+            if (isVisible) {
+                chatToggleBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+                chatToggleBtn.classList.add('active');
+            } else {
+                chatToggleBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>';
+                chatToggleBtn.classList.remove('active');
+            }
+        });
+
+        bookmarkBtn.addEventListener('click', () => toggleBookmark());
+        infoBtn.addEventListener('click', () => openInfoModal());
+
+        likeBtn.addEventListener('click', () => toggleRating('like'));
+        dislikeBtn.addEventListener('click', () => toggleRating('dislike'));
+
+
+        // --- Metrics & State ---
+        let nowWatching = null;
+        let engagementTimer = null;
+        let loveTimer = null;
+        let favorites = JSON.parse(localStorage.getItem('vidsrc_favorites')) || [];
+
+        async function initializeSession(id, type) {
+            try {
+                const response = await fetch(`${BASE_URL}/${type}/${id}?api_key=${API_KEY}`);
+                const data = await response.json();
+
+                const title = data.title || data.name;
+                const year = (data.release_date || data.first_air_date || '').split('-')[0];
+                const poster_path = data.poster_path;
+                const rating = data.vote_average ? data.vote_average.toFixed(1) : 'N/A';
+                const genres = data.genres ? data.genres.map(g => g.name) : [];
+                const description = data.overview;
+
+                nowWatching = {
+                    id,
+                    type,
+                    title,
+                    year,
+                    poster_path,
+                    rating,
+                    genres,
+                    description,
+                    startTime: Date.now()
+                };
+
+                localStorage.setItem('vidsrc_now_watching', JSON.stringify(nowWatching));
+
+                // Metrics
+                recordMetric('view', nowWatching);
+                engagementTimer = setTimeout(() => recordMetric('engagement', nowWatching), 5 * 60 * 1000);
+                const loveDuration = type === 'movie' ? 60 : 30;
+                loveTimer = setTimeout(() => recordMetric('love', nowWatching), loveDuration * 60 * 1000);
+
+                // Load UI States
+                loadRating();
+                updateBookmarkUI();
+
+            } catch (e) {
+                console.error("Error initializing session", e);
+            }
+        }
+
+        function recordMetric(metricType, metadata) {
+            const metrics = JSON.parse(localStorage.getItem('vidsrc_metrics')) || [];
+            metrics.push({
+                metric: metricType,
+                timestamp: Date.now(),
+                ...metadata
+            });
+            localStorage.setItem('vidsrc_metrics', JSON.stringify(metrics));
+            console.log(`Recorded metric: ${metricType}`);
+        }
+
+        // --- Rating Logic ---
+        function toggleRating(newRating) {
+            let ratings = JSON.parse(localStorage.getItem('vidsrc_ratings')) || [];
+            const index = ratings.findIndex(r => r.id == tmdbId);
+            let currentRating = index !== -1 ? ratings[index].rating : null;
+
+            if (currentRating === newRating) {
+                if (index !== -1) ratings.splice(index, 1);
+                updateRatingUI(null);
+            } else {
+                const ratingEntry = {
+                    id: tmdbId,
+                    type,
+                    rating: newRating,
+                    timestamp: Date.now(),
+                    ...nowWatching
+                };
+                if (index !== -1) ratings[index] = ratingEntry;
+                else ratings.push(ratingEntry);
+                updateRatingUI(newRating);
+            }
+            localStorage.setItem('vidsrc_ratings', JSON.stringify(ratings));
+        }
+
+        function loadRating() {
+            const ratings = JSON.parse(localStorage.getItem('vidsrc_ratings')) || [];
+            const entry = ratings.find(r => r.id == tmdbId);
+            if (entry) updateRatingUI(entry.rating);
+        }
+
+        function updateRatingUI(rating) {
+            likeBtn.classList.remove('active');
+            dislikeBtn.classList.remove('active');
+            if (rating === 'like') likeBtn.classList.add('active');
+            else if (rating === 'dislike') dislikeBtn.classList.add('active');
+        }
+
+        // --- Bookmark Logic ---
+        function toggleBookmark() {
+            if (!nowWatching) return;
+
+            const index = favorites.findIndex(f => f.id == tmdbId);
+            if (index === -1) {
+                favorites.push({
+                    id: tmdbId,
+                    type,
+                    title: nowWatching.title,
+                    poster_path: nowWatching.poster_path,
+                    year: nowWatching.year,
+                    rating: nowWatching.rating,
+                    timestamp: Date.now()
+                });
+            } else {
+                favorites.splice(index, 1);
+            }
+            localStorage.setItem('vidsrc_favorites', JSON.stringify(favorites));
+            updateBookmarkUI();
+        }
+
+        function updateBookmarkUI() {
+            const isFav = favorites.some(f => f.id == tmdbId);
+            if (isFav) {
+                bookmarkBtn.classList.add('active');
+                bookmarkBtn.querySelector('svg').setAttribute('fill', 'currentColor');
+            } else {
+                bookmarkBtn.classList.remove('active');
+                bookmarkBtn.querySelector('svg').setAttribute('fill', 'none');
+            }
+        }
+
+        // --- Modal Logic ---
+        async function openInfoModal() {
+            if (!nowWatching) return;
+
+            const modalOverlay = document.getElementById('modal-overlay');
+            const modalBody = document.getElementById('modal-body');
+
+            modalBody.innerHTML = '<div style="padding:2rem; text-align:center;">Loading...</div>';
+            modalOverlay.classList.add('visible');
+
+            try {
+                // Fetch extra details like cast if needed, or just use what we have
+                // Let's fetch credits to match homepage modal
+                const response = await fetch(`${BASE_URL}/${type}/${tmdbId}?api_key=${API_KEY}&append_to_response=credits`);
+                const data = await response.json();
+
+                const cast = data.credits.cast.slice(0, 5).map(c => c.name).join(', ');
+                const posterUrl = data.poster_path ? `${IMAGE_BASE_URL}${data.poster_path}` : '';
+
+                modalBody.innerHTML = `
+                    <div class="modal-layout">
+                        <div class="modal-poster-container">
+                            <img src="${posterUrl}" alt="${data.title}" class="modal-poster">
+                        </div>
+                        <div class="modal-info">
+                            <h2 class="modal-title">${nowWatching.title}</h2>
+                            <div class="modal-meta">
+                                <span class="modal-year">${nowWatching.year}</span>
+                                <span class="modal-rating">⭐ ${nowWatching.rating}</span>
+                            </div>
+                            <div class="modal-genres">${nowWatching.genres.join(', ')}</div>
+                            
+                            <div class="modal-section">
+                                <h3>Overview</h3>
+                                <p class="modal-desc">${data.overview}</p>
+                            </div>
+                            
+                            <div class="modal-section">
+                                <h3>Starring</h3>
+                                <p class="modal-cast">${cast}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } catch (e) {
+                modalBody.innerHTML = '<p>Error loading details.</p>';
+            }
+        }
+
+        document.getElementById('close-modal').addEventListener('click', () => {
+            document.getElementById('modal-overlay').classList.remove('visible');
+        });
+
+        document.getElementById('modal-overlay').addEventListener('click', (e) => {
+            if (e.target.id === 'modal-overlay') {
+                document.getElementById('modal-overlay').classList.remove('visible');
+            }
+        });
+
+        // Cleanup
+        window.addEventListener('beforeunload', () => {
+            clearTimeout(engagementTimer);
+            clearTimeout(loveTimer);
+            clearTimeout(inactivityTimer);
+            localStorage.removeItem('vidsrc_now_watching');
+        });
+    </script>
+</body>
+
+</html>

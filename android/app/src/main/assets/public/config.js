@@ -1,0 +1,20 @@
+window.AppConfig = {
+    playerUrlTemplateMovie: "https://vidsrc.cc/v2/embed/movie/{tmdbId}?autoplay=true",
+    playerUrlTemplateTv: "https://vidsrc.cc/v2/embed/tv/{tmdbId}?autoplay=true",
+};
+
+window.loadConfig = async function () {
+    try {
+        const response = await fetch('settings.json');
+        if (response.ok) {
+            const config = await response.json();
+            window.AppConfig = { ...window.AppConfig, ...config };
+            console.log('Config loaded:', window.AppConfig);
+        } else {
+            console.warn('Failed to load settings.json, using defaults.');
+        }
+    } catch (e) {
+        console.warn('Error loading settings.json:', e);
+    }
+    return window.AppConfig;
+};
