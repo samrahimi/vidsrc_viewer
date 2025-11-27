@@ -43,7 +43,29 @@ let history = JSON.parse(localStorage.getItem('vidsrc_history')) || [];
 
 
 // Config
-const CATEGORIES_TO_SHOW = [28, 35, 18, 878]; // Action, Comedy, Drama, Sci-Fi (IDs from TMDB)
+/* common categories:
+Action          28
+Adventure       12
+Animation       16
+Comedy          35
+Crime           80
+Documentary     99
+Drama           18
+Family          10751
+Fantasy         14
+History         36
+Horror          27
+Music           10402
+Mystery         9648
+Romance         10749
+Science Fiction 878
+TV Movie        10770
+Thriller        53
+War             10752
+Western         37
+*/
+
+const CATEGORIES_TO_SHOW = [28, 12, 16, 35, 80, 99, 18, 10751, 14, 36, 27, 10402, 9648, 10749, 878, 10770, 53, 10752, 37]; // Action, Comedy, Drama, Sci-Fi (IDs from TMDB)
 
 // Initialize
 // document.addEventListener('DOMContentLoaded', () => {
@@ -64,9 +86,7 @@ async function initApp() {
 
     await fetchGenres();
     fetchTrending('movie', 'day');
-    fetchTrending('tv', 'day');
-    fetchTrending('tv', 'day');
-    fetchTrending('tv', 'day');
+    fetchTrending('tv', 'week');
     renderFavorites();
     renderHistory();
     renderCategoryFeeds();
@@ -129,7 +149,7 @@ async function fetchTrending(type, timeWindow) {
     showLoading(grid);
 
     try {
-        const response = await fetch(`${BASE_URL}/trending/${type}/${timeWindow}?api_key=${API_KEY}`);
+        const response = await fetch(`${BASE_URL}/trending/${type}/${timeWindow}?with_original_language=en&api_key=${API_KEY}`);
         const data = await response.json();
 
         if (type === 'movie' && timeWindow === 'day') {
@@ -206,9 +226,9 @@ async function renderCategoryFeeds() {
 
         // Fetch and render preview (first 5 items)
         try {
-            const response = await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=${genreId}&sort_by=popularity.desc&page=1`);
+            const response = await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=${genreId}&sort_by=popularity.desc&with_original_language=en&page=1`);
             const data = await response.json();
-            const previewItems = data.results.slice(0, 10); // Show top 10
+            const previewItems = data.results.slice(0, 14); // Show top 14
             const grid = section.querySelector(`#category-grid-${genreId}`);
             renderGrid(previewItems, grid, 'movie');
         } catch (error) {
@@ -602,7 +622,7 @@ function renderHistory() {
     }
 
     histSection.classList.remove('hidden');
-    renderGrid(history, histGrid, null);
+    renderGrid(history.slice(0, 20), histGrid, null);
     updateForYouVisibility();
 }
 
