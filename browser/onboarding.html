@@ -311,8 +311,10 @@
             <div class="final-step">
                 <div id="please-wait">
                     <h2>Please wait...</h2>
-                    <p>Our AI agent is crafting your personalized experience. This may take up to 30 seconds. Please do
-                        not close your browser.</p>
+                    <p id="loading-status">Crafting your story...</p>
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                    </div>
                 </div>
 
                 <div id="all-set" style="display: none;">
@@ -566,9 +568,11 @@
 
             // LLM Story Generation
             async function generateUserStory() {
-                const OPENAI_API_KEY = "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"; // Using user rule key as primary
-                const OPENAI_CHAT_URL = "https://openrouter.ai/api/v1/chat/completions"; // Standard OpenAI endpoint
-                const MODEL = "x-ai/grok-4-fast"; // Using a capable model
+                const OPENAI_API_KEY = "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";
+                const OPENAI_CHAT_URL = "https://openrouter.ai/api/v1/chat/completions";
+                const MODEL = "x-ai/grok-4-fast";
+
+                updateLoadingStatus("Crafting your story...");
 
                 const genreNames = selections.genres.map(s => s.name).join(', ');
                 const actorNames = selections.actors.map(s => s.name).join(', ');
@@ -616,18 +620,124 @@ Please respond in 100 - 150 words.
                         const story = data.choices[0].message.content;
                         localStorage.setItem('user_onboarding_story', story);
                         console.log("Generated User Story:", story);
+
+                        // Chain to recommendations
+                        await generateRecommendations(story, userProfile, OPENAI_API_KEY, OPENAI_CHAT_URL, MODEL);
+
                     } else {
                         console.error("Failed to generate story:", data);
+                        finishLoading();
                     }
-
 
                 } catch (e) {
                     console.error("Error calling LLM:", e);
-                } finally {
-                    //Update the UI
-                    document.getElementById('please-wait').style.display = 'none';
-                    document.getElementById('all-set').style.display = 'block';
+                    finishLoading();
                 }
+            }
+
+            async function generateRecommendations(story, userProfile, apiKey, url, model) {
+                updateLoadingStatus("Personalizing your recommendations...");
+
+                const prompt = `
+User Profile:
+${userProfile}
+
+User Story:
+${story}
+
+Based on the user profile and story above, please generate a list of 49 movie and TV show recommendations. 
+Return ONLY a valid JSON array of objects. Each object should have:
+- "title": The name of the movie or show
+- "type": "movie" or "tv"
+- "year": The release year (optional but helpful)
+
+Do not include any markdown formatting or explanation. Just the raw JSON array.
+Example:
+[
+  {"title": "The Matrix", "type": "movie", "year": 1999},
+  {"title": "Breaking Bad", "type": "tv", "year": 2008}
+]
+`;
+
+                try {
+                    const response = await fetch(url, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: model,
+                            messages: [{ role: "user", content: prompt }],
+                            max_tokens: 2000 // Need enough tokens for 49 items
+                        })
+                    });
+
+                    const data = await response.json();
+                    if (data.choices && data.choices[0]) {
+                        let content = data.choices[0].message.content;
+                        // Clean up markdown if present
+                        content = content.replace(/```json/g, '').replace(/```/g, '').trim();
+
+                        let recommendations = [];
+                        try {
+                            recommendations = JSON.parse(content);
+                        } catch (parseError) {
+                            console.error("Failed to parse recommendations JSON:", parseError);
+                            // Fallback or retry? For now, just finish.
+                            finishLoading();
+                            return;
+                        }
+
+                        console.log("Generated Recommendations:", recommendations);
+                        await enrichRecommendations(recommendations);
+
+                    } else {
+                        console.error("Failed to generate recommendations:", data);
+                        finishLoading();
+                    }
+                } catch (e) {
+                    console.error("Error generating recommendations:", e);
+                    finishLoading();
+                }
+            }
+
+            async function enrichRecommendations(list) {
+                updateLoadingStatus("Hooking up your streams...");
+
+                const enrichedList = [];
+                // Process in batches to avoid rate limits if possible, but for 49 items sequential is safer for order and limits
+                // We'll do parallel with a limit, or just sequential for simplicity and reliability.
+                // Sequential is safer for rate limits.
+
+                for (const item of list) {
+                    try {
+                        const searchUrl = `${BASE_URL}/search/${item.type}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(item.title)}&year=${item.year}`;
+                        const res = await fetch(searchUrl);
+                        const data = await res.json();
+
+                        if (data.results && data.results.length > 0) {
+                            // Take the first result
+                            const match = data.results[0];
+                            enrichedList.push(match);
+                        }
+                    } catch (e) {
+                        console.error(`Failed to enrich ${item.title}:`, e);
+                    }
+                }
+
+                localStorage.setItem('vidsrc_recommendations', JSON.stringify(enrichedList));
+                finishLoading();
+            }
+
+            function updateLoadingStatus(msg) {
+                const el = document.getElementById('loading-status');
+                if (el) el.textContent = msg;
+            }
+
+            function finishLoading() {
+                document.getElementById('please-wait').style.display = 'none';
+                document.getElementById('all-set').style.display = 'block';
             }
 
             // Start

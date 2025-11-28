@@ -29,6 +29,9 @@ const categoryTitle = document.getElementById('category-title');
 const categoryGrid = document.getElementById('category-grid');
 const closeCategoryBtn = document.getElementById('close-category');
 const loadMoreCategoryBtn = document.getElementById('load-more-category');
+const recommendationsSection = document.createElement('section'); // Created dynamically
+recommendationsSection.id = 'recommendations-section';
+recommendationsSection.className = 'media-section hidden';
 
 // State
 let searchTimeout;
@@ -99,11 +102,21 @@ async function initApp() {
     }
 
     await fetchGenres();
-    fetchTrending('movie', 'day');
-    fetchTrending('tv', 'week');
-    renderFavorites();
-    renderHistory();
-    renderCategoryFeeds();
+
+    // Check Onboarding
+    const onboardingCompleted = localStorage.getItem('onboarding_completed');
+    if (!onboardingCompleted) {
+        document.getElementById('onboarding-container').classList.remove('hidden');
+    } else {
+        // Normal flow
+        fetchTrending('movie', 'day');
+        fetchTrending('tv', 'week');
+        renderFavorites();
+        renderHistory();
+        renderRecommendationsFeed();
+        renderCategoryFeeds();
+    }
+
     setupEventListeners();
 }
 
@@ -159,7 +172,22 @@ function setupEventListeners() {
         const histSection = document.getElementById('history-section');
         histSection.classList.remove('hidden');
         histSection.scrollIntoView({ behavior: 'smooth' });
+        histSection.scrollIntoView({ behavior: 'smooth' });
     }) */
+
+    // Onboarding Listener
+    window.addEventListener('message', (event) => {
+        if (event.data.type === 'closeOnboarding') {
+            document.getElementById('onboarding-container').classList.add('hidden');
+            // Initialize main content if not already done (or just refresh feeds)
+            fetchTrending('movie', 'day');
+            fetchTrending('tv', 'week');
+            renderFavorites();
+            renderHistory();
+            renderRecommendationsFeed();
+            renderCategoryFeeds();
+        }
+    });
 }
 
 async function fetchTrending(type, timeWindow) {
@@ -255,6 +283,90 @@ async function renderCategoryFeeds() {
     }
 }
 
+// --- Recommendations Feed ---
+function renderRecommendationsFeed() {
+    const recs = JSON.parse(localStorage.getItem('vidsrc_recommendations'));
+    if (!recs || recs.length === 0) return;
+
+    // Insert after hero, before for-you or trending
+    // We'll insert it before foryou-container
+    const forYouContainer = document.getElementById('foryou-container');
+    if (!document.getElementById('recommendations-section')) {
+        forYouContainer.parentNode.insertBefore(recommendationsSection, forYouContainer);
+    }
+
+    recommendationsSection.classList.remove('hidden');
+    recommendationsSection.innerHTML = `
+        <div class="section-header">
+            <h2>Recommended for You</h2>
+            <a href="#" id="view-all-recs" class="view-more">View More</a>
+        </div>
+        <div class="media-grid" id="recommendations-grid"></div>
+    `;
+
+    const grid = recommendationsSection.querySelector('#recommendations-grid');
+    renderGrid(recs.slice(0, 21), grid, null);
+
+    document.getElementById('view-all-recs').addEventListener('click', (e) => {
+        e.preventDefault();
+        openStaticCategoryView('Recommended for You', recs);
+    });
+}
+
+let staticCategoryItems = [];
+let staticCategoryPage = 1;
+
+function openStaticCategoryView(title, items) {
+    // Hide main content
+    mainContentSections.forEach(el => el.classList.add('hidden'));
+    if (recommendationsSection) recommendationsSection.classList.add('hidden');
+
+    // Reset state
+    staticCategoryItems = items;
+    staticCategoryPage = 1;
+    categoryGrid.innerHTML = '';
+    categoryTitle.textContent = title;
+    loadMoreCategoryBtn.classList.remove('hidden');
+    loadMoreCategoryBtn.textContent = 'Load More';
+    loadMoreCategoryBtn.disabled = false;
+
+    // Show section
+    categoryViewSection.classList.remove('hidden');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Add scroll listener for infinite scroll
+    window.removeEventListener('scroll', handleInfiniteScroll); // Remove API scroll
+    window.addEventListener('scroll', handleStaticInfiniteScroll);
+
+    // Load first page
+    loadStaticCategoryPage();
+}
+
+function loadStaticCategoryPage() {
+    const ITEMS_PER_PAGE = 20;
+    const start = (staticCategoryPage - 1) * ITEMS_PER_PAGE;
+    const end = start + ITEMS_PER_PAGE;
+    const pageItems = staticCategoryItems.slice(start, end);
+
+    renderGrid(pageItems, categoryGrid, null, staticCategoryPage > 1);
+
+    if (end >= staticCategoryItems.length) {
+        loadMoreCategoryBtn.classList.add('hidden');
+    } else {
+        staticCategoryPage++;
+        loadMoreCategoryBtn.textContent = 'Load More';
+    }
+}
+
+function handleStaticInfiniteScroll() {
+    if (loadMoreCategoryBtn.classList.contains('hidden')) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+    if (scrollTop + clientHeight >= scrollHeight - 500) {
+        loadStaticCategoryPage();
+    }
+}
+
 async function openCategoryView(genreId, genreName) {
     // Hide main content
     mainContentSections.forEach(el => el.classList.add('hidden'));
@@ -314,7 +426,13 @@ function closeCategoryView() {
     categoryViewSection.classList.add('hidden');
     categoryGrid.innerHTML = '';
     mainContentSections.forEach(el => el.classList.remove('hidden'));
+    if (recommendationsSection && !localStorage.getItem('onboarding_completed') === false) {
+        // Only show if onboarding is complete and we have recs
+        const recs = localStorage.getItem('vidsrc_recommendations');
+        if (recs) recommendationsSection.classList.remove('hidden');
+    }
     window.removeEventListener('scroll', handleInfiniteScroll);
+    window.removeEventListener('scroll', handleStaticInfiniteScroll);
 }
 
 function handleInfiniteScroll() {
