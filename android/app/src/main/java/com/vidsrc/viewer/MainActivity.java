@@ -39,6 +39,7 @@ public class MainActivity extends BridgeActivity {
     private void handleIntent(Intent intent) {
         if (intent == null) return;
         Uri data = intent.getData();
+        
         if (data != null && "vidsrc".equals(data.getScheme())) {
             String url = data.toString();
             String newUrl = url.replace("vidsrc://", "https://");
@@ -57,19 +58,23 @@ public class MainActivity extends BridgeActivity {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
             String url = request.getUrl().toString();
+
+            /*
             if (url.startsWith("vidsrc://")) {
                 view.loadUrl(url.replace("vidsrc://", "https://"));
                 return true;
             }
-            // Force internal loading for http/https to prevent external browser
-            if (url.startsWith("http://") || url.startsWith("https://")) {
-                if (url.contains("vidsrc.xyz") || url.contains("vidsrc-embed.ru"))
-                    view.loadUrl(url);
-                // don't load top level ad domains
-
-                
+            */
+            if (url.contains("watch.html") || 
+            url.contains("vidsrc.cc") || 
+            url.contains("vidsrc.xyz") || 
+            url.contains("vidsrc-embed.ru")) {
+                view.loadUrl(url);
                 return true;
+            } else {
+                return false
             }
+
             return super.shouldOverrideUrlLoading(view, request);
         }
     }

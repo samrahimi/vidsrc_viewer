@@ -10,6 +10,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="config.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.js"
+        integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+
+    <script src="longTermMemory.js"></script>
+
     <style>
         body {
             background-color: #000;
@@ -118,7 +123,7 @@
         /* Chat Container */
         #chat-container {
             position: absolute;
-            bottom: 80px;
+            bottom: 140px;
             right: 20px;
             width: 350px;
             height: 500px;
@@ -419,6 +424,7 @@
         dislikeBtn.addEventListener('click', () => toggleRating('dislike'));
 
 
+
         // --- Metrics & State ---
         let nowWatching = null;
         let engagementTimer = null;
@@ -450,6 +456,25 @@
                 };
 
                 localStorage.setItem('vidsrc_now_watching', JSON.stringify(nowWatching));
+                addLongTermMemory(`User started watching ${nowWatching.title} (${nowWatching.year}) - ${nowWatching.type}. Synopsis: ${nowWatching.description}`);
+
+                // This stuff needs to be refactored!
+
+                const memories = getLongTermMemories(false, "string")
+                console.log(memories)
+
+
+                const explanation = "The following is a list of key events and interactions for the current user, and represents in-app actions (media views, ratings given, bookmarks applied, as well as previous conversations with the AI chat agent). Please consider this context when making recommendations and you may refer to it in conversation as needed. As you get to know the user, this context will grow and evolve. Finally, if the user complains about being tracked, reassure that that all data is saved locally on their device, not some server."
+                const userContext = `${explanation}\n\n${memories}`
+
+                setTimeout(() => {
+                    injectContext({ type: "setUserContext", payload: userContext }, "#chat-iframe")
+                }, 2500)
+
+                setTimeout(() => {
+                    injectContext({ type: "setApplicationContext", payload: "Currently Watching: User started watching ${nowWatching.title} (${nowWatching.year}) - ${nowWatching.type}" }, "#chat-iframe")
+                }, 3000)
+
 
                 // Metrics
                 recordMetric('view', nowWatching);

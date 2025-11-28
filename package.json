@@ -9,8 +9,8 @@
         "dist": "electron-builder"
     },
     "build": {
-        "appId": "com.chatflix.desktop",
-        "productName": "Chatflix",
+        "appId": "com.vlix.desktop",
+        "productName": "Vlix",
         "mac": {
             "category": "public.app-category.video",
             "target": "dmg"

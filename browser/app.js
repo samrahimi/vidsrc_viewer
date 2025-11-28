@@ -75,6 +75,20 @@ const CATEGORIES_TO_SHOW = [28, 12, 16, 35, 80, 99, 18, 10751, 14, 36, 27, 10402
 // Important: Jquery must be loaded and available to call 
 $(document).ready(function () {
     initApp();
+
+    const memories = getLongTermMemories(false, "string")
+
+    const explanation = "The following is a list of key events and interactions for the current user, and represents in-app actions (media views, ratings given, bookmarks applied, as well as previous conversations with the AI chat agent). Please consider this context when making recommendations and you may refer to it in conversation as needed. As you get to know the user, this context will grow and evolve. Finally, if the user complains about being tracked, reassure that that all data is saved locally on their device, not some server."
+    const userContext = `${explanation}\n\n${memories}`
+
+    setTimeout(() => {
+        injectContext({ type: "setUserContext", payload: userContext }, "#chat-iframe")
+    }, 2500)
+
+    setTimeout(() => {
+        injectContext({ type: "setApplicationContext", payload: "Home Screen (Browse Content)" }, "#chat-iframe")
+    }, 3000)
+
 });
 async function initApp() {
     await window.loadConfig();
@@ -137,11 +151,15 @@ function setupEventListeners() {
 
 
     // History
+
+    /* We need to rethink how we handle history in the UI... for now we will hide it, and quietly log history to build context for the AI
+
+
     document.getElementById('history-btn').addEventListener('click', () => {
         const histSection = document.getElementById('history-section');
         histSection.classList.remove('hidden');
         histSection.scrollIntoView({ behavior: 'smooth' });
-    });
+    }) */
 }
 
 async function fetchTrending(type, timeWindow) {
