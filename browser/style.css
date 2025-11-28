@@ -817,3 +817,27 @@ body {
         right: 20px;
     }
 }
+
+/* Onboarding Modal */
+#onboarding-modal-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 20000;
+    background: var(--bg-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#onboarding-modal-container.hidden {
+    display: none;
+}
+
+#onboarding-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}

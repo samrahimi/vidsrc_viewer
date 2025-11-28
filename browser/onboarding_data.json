@@ -1,0 +1,942 @@
+{
+  "genres": [
+    {
+      "id": 28,
+      "name": "Action"
+    },
+    {
+      "id": 12,
+      "name": "Adventure"
+    },
+    {
+      "id": 16,
+      "name": "Animation"
+    },
+    {
+      "id": 35,
+      "name": "Comedy"
+    },
+    {
+      "id": 80,
+      "name": "Crime"
+    },
+    {
+      "id": 99,
+      "name": "Documentary"
+    },
+    {
+      "id": 18,
+      "name": "Drama"
+    },
+    {
+      "id": 10751,
+      "name": "Family"
+    },
+    {
+      "id": 14,
+      "name": "Fantasy"
+    },
+    {
+      "id": 36,
+      "name": "History"
+    },
+    {
+      "id": 27,
+      "name": "Horror"
+    },
+    {
+      "id": 10402,
+      "name": "Music"
+    },
+    {
+      "id": 9648,
+      "name": "Mystery"
+    },
+    {
+      "id": 10749,
+      "name": "Romance"
+    },
+    {
+      "id": 878,
+      "name": "Science Fiction"
+    },
+    {
+      "id": 10770,
+      "name": "TV Movie"
+    },
+    {
+      "id": 53,
+      "name": "Thriller"
+    },
+    {
+      "id": 10752,
+      "name": "War"
+    },
+    {
+      "id": 37,
+      "name": "Western"
+    },
+    {
+      "id": 10759,
+      "name": "Action & Adventure"
+    },
+    {
+      "id": 10762,
+      "name": "Kids"
+    },
+    {
+      "id": 10763,
+      "name": "News"
+    },
+    {
+      "id": 10764,
+      "name": "Reality"
+    },
+    {
+      "id": 10765,
+      "name": "Sci-Fi & Fantasy"
+    },
+    {
+      "id": 10766,
+      "name": "Soap"
+    },
+    {
+      "id": 10767,
+      "name": "Talk"
+    },
+    {
+      "id": 10768,
+      "name": "War & Politics"
+    }
+  ],
+  "movies": [
+    {
+      "id": 48311,
+      "title": "Parasite",
+      "poster_path": "/4DGPORlVIDIQvsuSDnM4uXKMjWS.jpg",
+      "backdrop_path": "/5qVLF9WTdBDA08fsZ9H5clJ6umI.jpg",
+      "release_date": "1982-03-12",
+      "vote_average": 4.8
+    },
+    {
+      "id": 475557,
+      "title": "Joker",
+      "poster_path": "/udDclJoHjfjb8Ekgsd4FDteOkCU.jpg",
+      "backdrop_path": "/hw1CwteUFGjcWXwjGhKk8UJpWeA.jpg",
+      "release_date": "2019-10-01",
+      "vote_average": 8.13
+    },
+    {
+      "id": 530915,
+      "title": "1917",
+      "poster_path": "/iZf0KyrE25z1sage4SYFLCCrMi9.jpg",
+      "backdrop_path": "/2WgieNR1tGHlpJUsolbVzbUbE1O.jpg",
+      "release_date": "2019-12-25",
+      "vote_average": 7.986
+    },
+    {
+      "id": 546554,
+      "title": "Knives Out",
+      "poster_path": "/pThyQovXQrw2m0s9x82twj48Jq4.jpg",
+      "backdrop_path": "/4HWAQu28e2yaWrtupFPGFkdNU7V.jpg",
+      "release_date": "2019-11-27",
+      "vote_average": 7.8
+    },
+    {
+      "id": 634649,
+      "title": "Spider-Man: No Way Home",
+      "poster_path": "/1g0dhYtq4irTY1GPXvft6k4YLjm.jpg",
+      "backdrop_path": "/tyQo080tijexyUHBvWPwQt26bZa.jpg",
+      "release_date": "2021-12-15",
+      "vote_average": 7.937
+    },
+    {
+      "id": 438631,
+      "title": "Dune",
+      "poster_path": "/d5NXSklXo0qyIYkgV94XAgMIckC.jpg",
+      "backdrop_path": "/wYMbnrdRCREjNLwFlG5SLWzBjui.jpg",
+      "release_date": "2021-09-15",
+      "vote_average": 7.777
+    },
+    {
+      "id": 414906,
+      "title": "The Batman",
+      "poster_path": "/74xTEgt7R36Fpooo50r9T25onhq.jpg",
+      "backdrop_path": "/rvtdN5XkWAfGX6xDuPL6yYS2seK.jpg",
+      "release_date": "2022-03-01",
+      "vote_average": 7.658
+    },
+    {
+      "id": 361743,
+      "title": "Top Gun: Maverick",
+      "poster_path": "/62HCnUTziyWcpDaBO2i1DX17ljH.jpg",
+      "backdrop_path": "/AaV1YIdWKnjAIAOe8UUKBFm327v.jpg",
+      "release_date": "2022-05-21",
+      "vote_average": 8.164
+    },
+    {
+      "id": 545611,
+      "title": "Everything Everywhere All at Once",
+      "poster_path": "/u68AjlvlutfEIcpmbYpKcdi09ut.jpg",
+      "backdrop_path": "/ss0Os3uWJfQAENILHZUdX8Tt1OC.jpg",
+      "release_date": "2022-03-24",
+      "vote_average": 7.728
+    },
+    {
+      "id": 872585,
+      "title": "Oppenheimer",
+      "poster_path": "/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg",
+      "backdrop_path": "/ycnO0cjsAROSGJKuMODgRtWsHQw.jpg",
+      "release_date": "2023-07-19",
+      "vote_average": 8.045
+    },
+    {
+      "id": 346698,
+      "title": "Barbie",
+      "poster_path": "/iuFNMS8U5cb6xfzi51Dbkovj7vM.jpg",
+      "backdrop_path": "/ctMserH8g2SeOAnCw5gFjdQF8mo.jpg",
+      "release_date": "2023-07-19",
+      "vote_average": 6.9
+    },
+    {
+      "id": 447365,
+      "title": "Guardians of the Galaxy Vol. 3",
+      "poster_path": "/r2J02Z2OpNTctfOSN1Ydgii51I3.jpg",
+      "backdrop_path": "/5YZbUmjbMa3ClvSW1Wj3D6XGolb.jpg",
+      "release_date": "2023-05-03",
+      "vote_average": 7.933
+    },
+    {
+      "id": 603692,
+      "title": "John Wick: Chapter 4",
+      "poster_path": "/vZloFAK7NmvMGKE7VkF5UHaz0I.jpg",
+      "backdrop_path": "/7I6VUdPj6tQECNHdviJkUHD2u89.jpg",
+      "release_date": "2023-03-22",
+      "vote_average": 7.716
+    },
+    {
+      "id": 569094,
+      "title": "Spider-Man: Across the Spider-Verse",
+      "poster_path": "/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg",
+      "backdrop_path": "/9xfDWXAUbFXQK585JvByT5pEAhe.jpg",
+      "release_date": "2023-05-31",
+      "vote_average": 8.34
+    },
+    {
+      "id": 792307,
+      "title": "Poor Things",
+      "poster_path": "/kCGlIMHnOm8JPXq3rXM6c5wMxcT.jpg",
+      "backdrop_path": "/zh6IdheEYinU4TPtorWsjx6qPQE.jpg",
+      "release_date": "2023-12-07",
+      "vote_average": 7.655
+    },
+    {
+      "id": 466420,
+      "title": "Killers of the Flower Moon",
+      "poster_path": "/dB6Krk806zeqd0YNp2ngQ9zXteH.jpg",
+      "backdrop_path": "/1X7vow16X7CnCoexXh4H4F2yDJv.jpg",
+      "release_date": "2023-10-18",
+      "vote_average": 7.41
+    },
+    {
+      "id": 577922,
+      "title": "Tenet",
+      "poster_path": "/aCIFMriQh8rvhxpN1IWGgvH0Tlg.jpg",
+      "backdrop_path": "/yY76zq9XSuJ4nWyPDuwkdV7Wt0c.jpg",
+      "release_date": "2020-08-22",
+      "vote_average": 7.177
+    },
+    {
+      "id": 508442,
+      "title": "Soul",
+      "poster_path": "/pEz5aROvfy5FBW1OTlrDO3VryWO.jpg",
+      "backdrop_path": "/rQaHA74pevnGsxcKGaoZVGWe9TC.jpg",
+      "release_date": "2020-12-25",
+      "vote_average": 8.104
+    },
+    {
+      "id": 581734,
+      "title": "Nomadland",
+      "poster_path": "/dKT8rGDR55cM1vGn7QZLA9Tg9YC.jpg",
+      "backdrop_path": "/563sRDK3rZS31TXCdTY4lfcwrNK.jpg",
+      "release_date": "2021-01-29",
+      "vote_average": 7.183
+    },
+    {
+      "id": 502033,
+      "title": "Sound of Metal",
+      "poster_path": "/3178oOJKKPDeQ2legWQvMPpllv.jpg",
+      "backdrop_path": "/7b5R8FfGUzlxfhOkPpL3xyIeuyF.jpg",
+      "release_date": "2020-11-20",
+      "vote_average": 7.708
+    },
+    {
+      "id": 238,
+      "title": "The Godfather",
+      "poster_path": "/3bhkrj58Vtu7enYsRolD1fZdja1.jpg",
+      "backdrop_path": "/tmU7GeKVybMWFButWEGl2M4GeiP.jpg",
+      "release_date": "1972-03-14",
+      "vote_average": 8.685
+    },
+    {
+      "id": 278,
+      "title": "The Shawshank Redemption",
+      "poster_path": "/9cqNxx0GxF0bflZmeSMuL5tnGzr.jpg",
+      "backdrop_path": "/zfbjgQE1uSd9wiPTX4VzsLi0rGG.jpg",
+      "release_date": "1994-09-23",
+      "vote_average": 8.7
+    },
+    {
+      "id": 680,
+      "title": "Pulp Fiction",
+      "poster_path": "/vQWk5YBFWF4bZaofAbv0tShwBvQ.jpg",
+      "backdrop_path": "/suaEOtk1N1sgg2MTM7oZd2cfVp3.jpg",
+      "release_date": "1994-09-10",
+      "vote_average": 8.488
+    },
+    {
+      "id": 13,
+      "title": "Forrest Gump",
+      "poster_path": "/saHP97rTPS5eLmrLQEcANmKrsFl.jpg",
+      "backdrop_path": "/67HggiWaP9ZLv5sPYmyRV37yAJM.jpg",
+      "release_date": "1994-06-23",
+      "vote_average": 8.463
+    },
+    {
+      "id": 155,
+      "title": "The Dark Knight",
+      "poster_path": "/qJ2tW6WMUDux911r6m7haRef0WH.jpg",
+      "backdrop_path": "/dqK9Hag1054tghRQSqLSfrkvQnA.jpg",
+      "release_date": "2008-07-16",
+      "vote_average": 8.525
+    },
+    {
+      "id": 27205,
+      "title": "Inception",
+      "poster_path": "/xlaY2zyzMfkhk0HSC5VUwzoZPU1.jpg",
+      "backdrop_path": "/s3TBrRGB1iav7gFOCNx3H31MoES.jpg",
+      "release_date": "2010-07-15",
+      "vote_average": 8.371
+    },
+    {
+      "id": 122,
+      "title": "The Lord of the Rings: The Return of the King",
+      "poster_path": "/rCzpDGLbOoPwLjy3OAm5NUPOTrC.jpg",
+      "backdrop_path": "/2u7zbn8EudG6kLlBzUYqP8RyFU4.jpg",
+      "release_date": "2003-12-17",
+      "vote_average": 8.491
+    },
+    {
+      "id": 424,
+      "title": "Schindler's List",
+      "poster_path": "/sF1U4EUQS8YHUYjNl3pMGNIQyr0.jpg",
+      "backdrop_path": "/zb6fM1CX41D9rF9hdgclu0peUmy.jpg",
+      "release_date": "1993-12-15",
+      "vote_average": 8.566
+    },
+    {
+      "id": 597,
+      "title": "Titanic",
+      "poster_path": "/9xjZS2rlVxm8SFx8kPC3aIGCOYQ.jpg",
+      "backdrop_path": "/xXCuto8YVp5RFqBJ7yKmVmLOWpF.jpg",
+      "release_date": "1997-11-18",
+      "vote_average": 7.903
+    },
+    {
+      "id": 11,
+      "title": "Star Wars",
+      "poster_path": "/6FfCtAuVAW8XJjZ7eWeLibRLWTw.jpg",
+      "backdrop_path": "/2w4xG178RpB4MDAIfTkqAuSJzec.jpg",
+      "release_date": "1977-05-25",
+      "vote_average": 8.204
+    },
+    {
+      "id": 289,
+      "title": "Casablanca",
+      "poster_path": "/oyGRZVIthHJjc98ekKpeWpDh8Ws.jpg",
+      "backdrop_path": "/87wqeMeUeMRLjsE1IWNKJcPlpuC.jpg",
+      "release_date": "1943-01-15",
+      "vote_average": 8.1
+    },
+    {
+      "id": 15,
+      "title": "Citizen Kane",
+      "poster_path": "/sav0jxhqiH0bPr2vZFU0Kjt2nZL.jpg",
+      "backdrop_path": "/ruF3Lmd4A8MHbnEBE6lxPMbsHGL.jpg",
+      "release_date": "1941-04-17",
+      "vote_average": 7.997
+    },
+    {
+      "id": 769,
+      "title": "GoodFellas",
+      "poster_path": "/aKuFiU82s5ISJpGZp7YkIr3kCUd.jpg",
+      "backdrop_path": "/gILte6Zd7m1YneIr6MVhh30S9pr.jpg",
+      "release_date": "1990-09-12",
+      "vote_average": 8.5
+    },
+    {
+      "id": 274,
+      "title": "The Silence of the Lambs",
+      "poster_path": "/uS9m8OBk1A8eM9I042bx8XXpqAq.jpg",
+      "backdrop_path": "/aYcnDyLMnpKce1FOYUpZrXtgUye.jpg",
+      "release_date": "1991-02-14",
+      "vote_average": 8.346
+    },
+    {
+      "id": 857,
+      "title": "Saving Private Ryan",
+      "poster_path": "/uqx37cS8cpHg8U35f9U5IBlrCV3.jpg",
+      "backdrop_path": "/rW2xRFlJRbTnBJlQTSjQmjevIwb.jpg",
+      "release_date": "1998-07-24",
+      "vote_average": 8.221
+    },
+    {
+      "id": 603,
+      "title": "The Matrix",
+      "poster_path": "/p96dm7sCMn4VYAStA6siNz30G1r.jpg",
+      "backdrop_path": "/tlm8UkiQsitc8rSuIAscQDCnP8d.jpg",
+      "release_date": "1999-03-31",
+      "vote_average": 8.2
+    },
+    {
+      "id": 550,
+      "title": "Fight Club",
+      "poster_path": "/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg",
+      "backdrop_path": "/hZkgoQYus5vegHoetLkCJzb17zJ.jpg",
+      "release_date": "1999-10-15",
+      "vote_average": 8.438
+    },
+    {
+      "id": 157336,
+      "title": "Interstellar",
+      "poster_path": "/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg",
+      "backdrop_path": "/5XNQBqnBwPA9yT0jZ0p3s8bbLh0.jpg",
+      "release_date": "2014-11-05",
+      "vote_average": 8.463
+    },
+    {
+      "id": 313369,
+      "title": "La La Land",
+      "poster_path": "/uDO8zWDhfWwoFdKS4fzkUJt0Rf0.jpg",
+      "backdrop_path": "/nlPCdZlHtRNcF6C9hzUH4ebmV1w.jpg",
+      "release_date": "2016-12-01",
+      "vote_average": 7.898
+    }
+  ],
+  "series": [
+    {
+      "id": 93405,
+      "name": "Squid Game",
+      "poster_path": "/1QdXdRYfktUSONkl1oD5gc6Be0s.jpg",
+      "backdrop_path": "/2meX1nMdScFOoV4370rqHWKmXhY.jpg",
+      "first_air_date": "2021-09-17",
+      "vote_average": 7.86
+    },
+    {
+      "id": 82856,
+      "name": "The Mandalorian",
+      "poster_path": "/sWgBv7LV2PRoQgkxwlibdGXKz1S.jpg",
+      "backdrop_path": "/9zcbqSxdsRMZWHYtyCd1nXPr2xq.jpg",
+      "first_air_date": "2019-11-12",
+      "vote_average": 8.416
+    },
+    {
+      "id": 85271,
+      "name": "WandaVision",
+      "poster_path": "/frobUz2X5Pc8OiVZU8Oo5K3NKMM.jpg",
+      "backdrop_path": "/lOr9NKxh4vMweufMOUDJjJhCRHW.jpg",
+      "first_air_date": "2021-01-15",
+      "vote_average": 8.204
+    },
+    {
+      "id": 76331,
+      "name": "Succession",
+      "poster_path": "/z0XiwdrCQ9yVIr4O0pxzaAYRxdW.jpg",
+      "backdrop_path": "/bcdUYUFk8GdpZJPiSAas9UeocLH.jpg",
+      "first_air_date": "2018-06-03",
+      "vote_average": 8.3
+    },
+    {
+      "id": 76479,
+      "name": "The Boys",
+      "poster_path": "/2zmTngn1tYC1AvfnrFLhxeD82hz.jpg",
+      "backdrop_path": "/7cqKGQMnNabzOpi7qaIgZvQ7NGV.jpg",
+      "first_air_date": "2019-07-25",
+      "vote_average": 8.447
+    },
+    {
+      "id": 85552,
+      "name": "Euphoria",
+      "poster_path": "/3Q0hd3heuWwDWpwcDkhQOA6TYWI.jpg",
+      "backdrop_path": "/9KnIzPCv9XpWA0MqmwiKBZvV1Sj.jpg",
+      "first_air_date": "2019-06-16",
+      "vote_average": 8.3
+    },
+    {
+      "id": 97546,
+      "name": "Ted Lasso",
+      "poster_path": "/5fhZdwP1DVJ0FyVH6vrFdHwpXIn.jpg",
+      "backdrop_path": "/wImNeqxKsqmJ5OBw8j3I37GNFN3.jpg",
+      "first_air_date": "2020-08-14",
+      "vote_average": 8.361
+    },
+    {
+      "id": 87739,
+      "name": "The Queen's Gambit",
+      "poster_path": "/zU0htwkhNvBQdVSIKB9s6hgVeFK.jpg",
+      "backdrop_path": "/34OGjFEbHj0E3lE2w0iTUVq0CBz.jpg",
+      "first_air_date": "2020-10-23",
+      "vote_average": 8.454
+    },
+    {
+      "id": 91239,
+      "name": "Bridgerton",
+      "poster_path": "/zCEm0xrRMa5fLCQ9d0nvcw6tvcr.jpg",
+      "backdrop_path": "/m7FqiUOvsSk7Ulg2oRMfFGcLeT9.jpg",
+      "first_air_date": "2020-12-25",
+      "vote_average": 8.075
+    },
+    {
+      "id": 66732,
+      "name": "Stranger Things",
+      "poster_path": "/cVxVGwHce6xnW8UaVUggaPXbmoE.jpg",
+      "backdrop_path": "/56v2KjBlU4XaOv9rVYEQypROD7P.jpg",
+      "first_air_date": "2016-07-15",
+      "vote_average": 8.599
+    },
+    {
+      "id": 94997,
+      "name": "House of the Dragon",
+      "poster_path": "/oxmdHR5Ka28HAJuMmS2hk5K6QQY.jpg",
+      "backdrop_path": "/2xGcSLyTAzConiHAByWqhfLiatT.jpg",
+      "first_air_date": "2022-08-21",
+      "vote_average": 8.308
+    },
+    {
+      "id": 100088,
+      "name": "The Last of Us",
+      "poster_path": "/dmo6TYuuJgaYinXBPjrgG9mB5od.jpg",
+      "backdrop_path": "/uQ4lG7E7mlyKsGvbASftQ6Hu2IX.jpg",
+      "first_air_date": "2023-01-15",
+      "vote_average": 8.466
+    },
+    {
+      "id": 119051,
+      "name": "Wednesday",
+      "poster_path": "/36xXlhEpQqVVPuiZhfoQuaY4OlA.jpg",
+      "backdrop_path": "/iHSwvRVsRyxpX7FE7GbviaDvgGZ.jpg",
+      "first_air_date": "2022-11-23",
+      "vote_average": 8.371
+    },
+    {
+      "id": 136315,
+      "name": "The Bear",
+      "poster_path": "/eKfVzzEazSIjJMrw9ADa2x8ksLz.jpg",
+      "backdrop_path": "/wHNwlE6ftEpgjVbdhLXOtv1hLs0.jpg",
+      "first_air_date": "2022-06-23",
+      "vote_average": 8.166
+    },
+    {
+      "id": 107113,
+      "name": "Only Murders in the Building",
+      "poster_path": "/1yjFVQZuW8aofZ5Cgol8iImsVFp.jpg",
+      "backdrop_path": "/WCnEPf4ZNPjszndmrFlDxZ5Uvd.jpg",
+      "first_air_date": "2021-08-31",
+      "vote_average": 8.499
+    },
+    {
+      "id": 84958,
+      "name": "Loki",
+      "poster_path": "/oJdVHUYrjdS2IqiNztVIP4GPB1p.jpg",
+      "backdrop_path": "/N1hWzVPpZ8lIQvQskgdQogxdsc.jpg",
+      "first_air_date": "2021-06-09",
+      "vote_average": 8.172
+    },
+    {
+      "id": 94605,
+      "name": "Arcane",
+      "poster_path": "/zO5xURaYgMX6WpXolp83zVk03Yh.jpg",
+      "backdrop_path": "/sYXLeu5usz6yEz0k00FYvtEdodD.jpg",
+      "first_air_date": "2021-11-06",
+      "vote_average": 8.752
+    },
+    {
+      "id": 60574,
+      "name": "Peaky Blinders",
+      "poster_path": "/vUUqzWa2LnHIVqkaKVlVGkVcZIW.jpg",
+      "backdrop_path": "/l8v3gJDlASN0lNn51gR8zQJsu5O.jpg",
+      "first_air_date": "2013-09-12",
+      "vote_average": 8.527
+    },
+    {
+      "id": 65494,
+      "name": "The Crown",
+      "poster_path": "/1DDE0Z2Y805rqfkEjPbZsMLyPwa.jpg",
+      "backdrop_path": "/8VXhcrl5z2I1zEU9X3pkkNrZlD.jpg",
+      "first_air_date": "2016-11-04",
+      "vote_average": 8.191
+    },
+    {
+      "id": 71912,
+      "name": "The Witcher",
+      "poster_path": "/AoGsDM02UVt0npBA8OvpDcZbaMi.jpg",
+      "backdrop_path": "/foGkPxpw9h8zln81j63mix5B7m8.jpg",
+      "first_air_date": "2019-12-20",
+      "vote_average": 7.975
+    },
+    {
+      "id": 1396,
+      "name": "Breaking Bad",
+      "poster_path": "/ztkUQFLlC19CCMYHW9o1zWhJRNq.jpg",
+      "backdrop_path": "/63FA8vwSZnXkGxedrDQwni4JuZN.jpg",
+      "first_air_date": "2008-01-20",
+      "vote_average": 8.935
+    },
+    {
+      "id": 1668,
+      "name": "Friends",
+      "poster_path": "/f496cm9enuEsZkSPzCwnTESEK5s.jpg",
+      "backdrop_path": "/wGI8MPfv23B80AF5Yrg1Ss2mVCp.jpg",
+      "first_air_date": "1994-09-22",
+      "vote_average": 8.424
+    },
+    {
+      "id": 2316,
+      "name": "The Office",
+      "poster_path": "/dg9e5fPRRId8PoBE0F6jl5y85Eu.jpg",
+      "backdrop_path": "/mLyW3UTgi2lsMdtueYODcfAB9Ku.jpg",
+      "first_air_date": "2005-03-24",
+      "vote_average": 8.6
+    },
+    {
+      "id": 1399,
+      "name": "Game of Thrones",
+      "poster_path": "/1XS1oqL89opfnbLl8WnZY1O1uJx.jpg",
+      "backdrop_path": "/zZqpAXxVSBtxV9qPBcscfXBcL2w.jpg",
+      "first_air_date": "2011-04-17",
+      "vote_average": 8.459
+    },
+    {
+      "id": 1398,
+      "name": "The Sopranos",
+      "poster_path": "/rTc7ZXdroqjkKivFPvCPX0Ru7uw.jpg",
+      "backdrop_path": "/lNpkvX2s8LGB0mjGODMT4o6Up7j.jpg",
+      "first_air_date": "1999-01-10",
+      "vote_average": 8.648
+    },
+    {
+      "id": 1104,
+      "name": "Mad Men",
+      "poster_path": "/yd4BrXPQZvin4XMDlXUP9JgQDUQ.jpg",
+      "backdrop_path": "/A5lVyejMsP5G7rAJBwU9ug3Wzou.jpg",
+      "first_air_date": "2007-07-19",
+      "vote_average": 8.125
+    },
+    {
+      "id": 1400,
+      "name": "Seinfeld",
+      "poster_path": "/aCw8ONfyz3AhngVQa1E2Ss4KSUQ.jpg",
+      "backdrop_path": "/7YDws30cXtWI03i1zUZHqH0l1Aa.jpg",
+      "first_air_date": "1989-07-05",
+      "vote_average": 8.253
+    },
+    {
+      "id": 1438,
+      "name": "The Wire",
+      "poster_path": "/4lbclFySvugI51fwsyxBTOm4DqK.jpg",
+      "backdrop_path": "/layPSOJGckJv3PXZDIVluMq69mn.jpg",
+      "first_air_date": "2002-06-02",
+      "vote_average": 8.603
+    },
+    {
+      "id": 4607,
+      "name": "Lost",
+      "poster_path": "/og6S0aTZU6YUJAbqxeKjCa3kY1E.jpg",
+      "backdrop_path": "/yUOFocKDW7MCC5isx4FK8A68QFp.jpg",
+      "first_air_date": "2004-09-22",
+      "vote_average": 7.946
+    },
+    {
+      "id": 1405,
+      "name": "Dexter",
+      "poster_path": "/q8dWfc4JwQuv3HayIZeO84jAXED.jpg",
+      "backdrop_path": "/aSGSxGMTP893DPMCvMl9AdnEICE.jpg",
+      "first_air_date": "2006-10-01",
+      "vote_average": 8.223
+    },
+    {
+      "id": 1920,
+      "name": "Twin Peaks",
+      "poster_path": "/lA9CNSdo50iQPZ8A2fyVpMvJZAf.jpg",
+      "backdrop_path": "/dZklTql88IDOmkC3JAYQSTgyK6f.jpg",
+      "first_air_date": "1990-04-08",
+      "vote_average": 8.345
+    },
+    {
+      "id": 456,
+      "name": "The Simpsons",
+      "poster_path": "/uWpG7GqfKGQqX4YMAo3nv5OrglV.jpg",
+      "backdrop_path": "/jvTeRgjFsp66xj8SWxhr7O2J4ud.jpg",
+      "first_air_date": "1989-12-17",
+      "vote_average": 8.013
+    },
+    {
+      "id": 141,
+      "name": "Cheers",
+      "poster_path": "/nD1ZQBKbgKSmKcrAkWTofohsScj.jpg",
+      "backdrop_path": "/5U7NIuRK836GutAlo7TLPfmVtGW.jpg",
+      "first_air_date": "1982-09-30",
+      "vote_average": 7.564
+    },
+    {
+      "id": 3452,
+      "name": "Frasier",
+      "poster_path": "/gYAb6GCVEFsU9hzMCG5rxaxoIv3.jpg",
+      "backdrop_path": "/4FqKFhF4BrNsrK3EdRpVJofVqCp.jpg",
+      "first_air_date": "1993-09-16",
+      "vote_average": 7.691
+    },
+    {
+      "id": 95,
+      "name": "Buffy the Vampire Slayer",
+      "poster_path": "/y7fVZkyheCEQHDUEHwNmYENGfT2.jpg",
+      "backdrop_path": "/q4CbisNArigphVn608Faxijdw8N.jpg",
+      "first_air_date": "1997-03-10",
+      "vote_average": 8.119
+    },
+    {
+      "id": 4087,
+      "name": "The X-Files",
+      "poster_path": "/rcBx0p8h51LHceyhquYMxbspJQu.jpg",
+      "backdrop_path": "/w00lfexrsOeR25dO4hsWhbcUnmD.jpg",
+      "first_air_date": "1993-09-10",
+      "vote_average": 8.4
+    },
+    {
+      "id": 4586,
+      "name": "Gilmore Girls",
+      "poster_path": "/gwtzCwU2wdLLf8oejQu2TINiWfQ.jpg",
+      "backdrop_path": "/8U2ndZrneigI2zkvGuTJtt1ZsxK.jpg",
+      "first_air_date": "2000-10-05",
+      "vote_average": 7.898
+    },
+    {
+      "id": 105,
+      "name": "Sex and the City",
+      "poster_path": "/jfLp8gTfdi9d8onEFJ60kp1Bl1e.jpg",
+      "backdrop_path": "/mXtL24G2Awyl3lKFtreMHnH5qFC.jpg",
+      "first_air_date": "1998-06-06",
+      "vote_average": 7.398
+    },
+    {
+      "id": 4588,
+      "name": "ER",
+      "poster_path": "/fuS63AoFTkprf8PFeL1f8z68zJr.jpg",
+      "backdrop_path": "/b1t0mS2MAqnMdh5opqi94rlDEjn.jpg",
+      "first_air_date": "1994-09-19",
+      "vote_average": 7.821
+    }
+  ],
+  "actors": [
+    {
+      "id": 1190668,
+      "name": "Timothée Chalamet",
+      "profile_path": "/dFxpwRpmzpVfP1zjluH68DeQhyj.jpg"
+    },
+    {
+      "id": 505710,
+      "name": "Zendaya",
+      "profile_path": "/3WdOloHpjtjL96uVOhFRRCcYSwq.jpg"
+    },
+    {
+      "id": 1373737,
+      "name": "Florence Pugh",
+      "profile_path": "/6EpDNiVqB2Mao3mHm4kYw09ufHk.jpg"
+    },
+    {
+      "id": 1397778,
+      "name": "Anya Taylor-Joy",
+      "profile_path": "/qYNofOjlRke2MlJVihmJmEdQI4v.jpg"
+    },
+    {
+      "id": 234352,
+      "name": "Margot Robbie",
+      "profile_path": "/euDPyqLnuwaWMHajcU3oZ9uZezR.jpg"
+    },
+    {
+      "id": 30614,
+      "name": "Ryan Gosling",
+      "profile_path": "/asoKC7CLCqpZKZDL6iovNurQUdf.jpg"
+    },
+    {
+      "id": 1136406,
+      "name": "Tom Holland",
+      "profile_path": "/4jG9XoIjrkIrkYXB9IjegsomL46.jpg"
+    },
+    {
+      "id": 550843,
+      "name": "Elizabeth Olsen",
+      "profile_path": "/mbMsmQE5CyMVTIGMGCw2XpcPCOc.jpg"
+    },
+    {
+      "id": 25072,
+      "name": "Oscar Isaac",
+      "profile_path": "/dW5U5yrIIPmMjRThR9KT2xH6nTz.jpg"
+    },
+    {
+      "id": 1253360,
+      "name": "Pedro Pascal",
+      "profile_path": "/9VYK7oxcqhjd5LAH6ZFJ3XzOlID.jpg"
+    },
+    {
+      "id": 1356210,
+      "name": "Millie Bobby Brown",
+      "profile_path": "/deh8boylpaHYPbCVyoFcqPFIW4V.jpg"
+    },
+    {
+      "id": 974169,
+      "name": "Jenna Ortega",
+      "profile_path": "/cV4x7jNmsGLdKZn5I6xVF3Ltnmg.jpg"
+    },
+    {
+      "id": 1290466,
+      "name": "Barry Keoghan",
+      "profile_path": "/15xPjrzSbtXlbQUhmLpQUil4tCN.jpg"
+    },
+    {
+      "id": 37625,
+      "name": "Andrew Garfield",
+      "profile_path": "/5ydZ6TluPtxlz5G8nlWMB7SGmow.jpg"
+    },
+    {
+      "id": 54693,
+      "name": "Emma Stone",
+      "profile_path": "/bKbFmFQtn1N6Utzr9Sf0E23alaL.jpg"
+    },
+    {
+      "id": 2037,
+      "name": "Cillian Murphy",
+      "profile_path": "/llkbyWKwpfowZ6C8peBjIV9jj99.jpg"
+    },
+    {
+      "id": 51329,
+      "name": "Bradley Cooper",
+      "profile_path": "/sQq0nft6YZmJ7EMQwPcbaxym3AL.jpg"
+    },
+    {
+      "id": 237405,
+      "name": "Lady Gaga",
+      "profile_path": "/7a6ZJhDhjQUd6I4k8FuxN8BRcMO.jpg"
+    },
+    {
+      "id": 86654,
+      "name": "Austin Butler",
+      "profile_path": "/atdAs4pFGjUQ4m2W8kJYly7N6cC.jpg"
+    },
+    {
+      "id": 2034418,
+      "name": "Jacob Elordi",
+      "profile_path": "/lC9pK3ADyPpH4dRo2BKZBaTZPfu.jpg"
+    },
+    {
+      "id": 6193,
+      "name": "Leonardo DiCaprio",
+      "profile_path": "/wo2hJpn04vbtmh0B9utCFdsQhxM.jpg"
+    },
+    {
+      "id": 31,
+      "name": "Tom Hanks",
+      "profile_path": "/eKF1sGJRrZJbfBG1KirPt1cfNd3.jpg"
+    },
+    {
+      "id": 5064,
+      "name": "Meryl Streep",
+      "profile_path": "/emAAzyK1rJ6aiMi0wsWYp51EC3h.jpg"
+    },
+    {
+      "id": 380,
+      "name": "Robert De Niro",
+      "profile_path": "/cT8htcckIuyI1Lqwt1CvD02ynTh.jpg"
+    },
+    {
+      "id": 1158,
+      "name": "Al Pacino",
+      "profile_path": "/2dGBb1fOcNdZjtQToVPFxXjm4ke.jpg"
+    },
+    {
+      "id": 5292,
+      "name": "Denzel Washington",
+      "profile_path": "/jj2Gcobpopokal0YstuCQW0ldJ4.jpg"
+    },
+    {
+      "id": 1204,
+      "name": "Julia Roberts",
+      "profile_path": "/mQ7076pL4Ac0ZzY4w31labWIdQt.jpg"
+    },
+    {
+      "id": 18277,
+      "name": "Sandra Bullock",
+      "profile_path": "/hPHGKPAWZ8gArYXMk225rrYPoyJ.jpg"
+    },
+    {
+      "id": 2888,
+      "name": "Will Smith",
+      "profile_path": "/8TlKqbXYgHmmaEoPBJ7djJ8Rxxa.jpg"
+    },
+    {
+      "id": 287,
+      "name": "Brad Pitt",
+      "profile_path": "/cckcYc2v0yh1tc9QjRelptcOBko.jpg"
+    },
+    {
+      "id": 11701,
+      "name": "Angelina Jolie",
+      "profile_path": "/bXNxIKcJ5cNNW8QFrBPWcfTSu9x.jpg"
+    },
+    {
+      "id": 85,
+      "name": "Johnny Depp",
+      "profile_path": "/drl9qDZoxPHhUbDamYcOQEhlHzW.jpg"
+    },
+    {
+      "id": 6384,
+      "name": "Keanu Reeves",
+      "profile_path": "/kEoUZKEG7dzbCESDjd0CKAN1r0n.jpg"
+    },
+    {
+      "id": 2227,
+      "name": "Nicole Kidman",
+      "profile_path": "/lfW2cDigTcvuoe4k6UfCdGVE1R6.jpg"
+    },
+    {
+      "id": 112,
+      "name": "Cate Blanchett",
+      "profile_path": "/mXpe59YDxcvAJS6EtshsvsRvLZP.jpg"
+    },
+    {
+      "id": 192,
+      "name": "Morgan Freeman",
+      "profile_path": "/jPsLqiYGSofU4s6BjrxnefMfabb.jpg"
+    },
+    {
+      "id": 2231,
+      "name": "Samuel L. Jackson",
+      "profile_path": "/AiAYAqwpM5xmiFrAIeQvUXDCVvo.jpg"
+    },
+    {
+      "id": 6885,
+      "name": "Charlize Theron",
+      "profile_path": "/ie1KbeYFG5E0GVr1QP7tDNuXvga.jpg"
+    },
+    {
+      "id": 6968,
+      "name": "Hugh Jackman",
+      "profile_path": "/5Dxx0j9jOAczsTQzZ0OkA5iJBhp.jpg"
+    },
+    {
+      "id": 1245,
+      "name": "Scarlett Johansson",
+      "profile_path": "/mjReG6rR7NPMEIWb1T4YWtV11ty.jpg"
+    }
+  ]
+}
