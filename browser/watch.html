@@ -147,6 +147,16 @@
             border: none;
         }
 
+        .trans {
+            opacity: 0.3 !important
+        }
+
+        .trans:hover {
+            opacity: 1 !important
+        }
+
+
+
         /* Modal Styles (Ported) */
         .modal-overlay {
             position: fixed;
@@ -375,6 +385,8 @@
         function resetInactivityTimer() {
             // Show panels
             panels.forEach(p => p.classList.remove('hidden'));
+            //panels.forEach(p => p.classList.add('trans'));
+
             document.body.style.cursor = 'default';
 
             // Allow clicks to pass through to iframe when controls are visible
@@ -390,7 +402,7 @@
             clearTimeout(inactivityTimer);
             inactivityTimer = setTimeout(() => {
                 // Hide panels
-                panels.forEach(p => p.classList.add('hidden'));
+                panels.forEach(p => p.classList.add('trans'));
                 document.body.style.cursor = 'none';
 
                 // When controls are hidden:
