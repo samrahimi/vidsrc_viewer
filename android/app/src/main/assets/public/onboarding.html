@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Vlix</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #e50914;
+            --background-color: #141414;
+            --surface-color: #1f1f1f;
+            --text-color: #ffffff;
+            --text-secondary: #b3b3b3;
+            --border-radius: 8px;
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+            /* Removed padding to handle full width/height better */
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+            height: 100%;
+            /* Ensure full height */
+        }
+
+        .header {
+            text-align: center;
+            padding: 2rem 2rem 1rem 2rem;
+            /* Added padding here */
+            flex-shrink: 0;
+            /* Don't shrink */
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            margin-top: 0;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        .step-container {
+            flex: 1;
+            overflow-y: auto;
+            display: none;
+            /* Hidden by default */
+            flex-direction: column;
+            align-items: center;
+            padding: 0 2rem;
+            /* Added padding here */
+            min-height: 0;
+            /* Crucial for nested flex scrolling */
+        }
+
+        .step-container.active {
+            display: flex;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1.5rem;
+            width: 100%;
+            padding-bottom: 2rem;
+        }
+
+        .card {
+            background-color: var(--surface-color);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            border: 2px solid transparent;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .card.selected {
+            border-color: var(--primary-color);
+        }
+
+        .card.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: var(--primary-color);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .card img {
+            width: 100%;
+            height: 225px;
+            /* Aspect ratio for posters */
+            object-fit: cover;
+        }
+
+        .card.actor-card img {
+            height: 225px;
+            /* Keep consistent */
+            object-fit: cover;
+        }
+
+        .card-content {
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .card-title {
+            font-weight: 500;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .genre-card {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            background: linear-gradient(45deg, #2a2a2a, #333);
+        }
+
+        .footer {
+            padding: 1rem 2rem;
+            /* Added padding here */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #333;
+            margin-top: auto;
+            background-color: var(--background-color);
+            /* Ensure opaque background */
+            flex-shrink: 0;
+            /* Don't shrink */
+            z-index: 10;
+        }
+
+        .btn {
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--text-secondary);
+        }
+
+        .btn-secondary:hover {
+            color: white;
+            border-color: white;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #f40612;
+        }
+
+        .btn-primary:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #141414;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+        }
+
+        /* Final Step */
+        .final-step {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .final-step h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .final-step p {
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="header">
+            <h1 id="step-title">Welcome</h1>
+            <p id="step-description">Let's personalize your experience.</p>
+        </div>
+
+        <!-- Step 1: Welcome -->
+        <div id="step-1" class="step-container active">
+            <div class="final-step" style="justify-content: center; height: 100%;">
+                <h2>Welcome to Vlix</h2>
+                <p>For the best experience, please tell us about the movies and shows you like to watch!</p>
+            </div>
+        </div>
+
+        <!-- Step 2: Genres -->
+        <div id="step-2" class="step-container">
+            <div id="genres-grid" class="grid">
+                <!-- Genres will be injected here -->
+            </div>
+        </div>
+
+        <!-- Step 3: Actors -->
+        <div id="step-3" class="step-container">
+            <div id="actors-grid" class="grid">
+                <!-- Actors will be injected here -->
+            </div>
+        </div>
+
+        <!-- Step 4: Movies -->
+        <div id="step-4" class="step-container">
+            <div id="movies-grid" class="grid">
+                <!-- Movies will be injected here -->
+            </div>
+        </div>
+
+        <!-- Step 5: TV Shows -->
+        <div id="step-5" class="step-container">
+            <div id="shows-grid" class="grid">
+                <!-- Shows will be injected here -->
+            </div>
+        </div>
+
+        <!-- Step 6: Final -->
+        <div id="step-6" class="step-container">
+            <div class="final-step">
+                <div id="please-wait">
+                    <h2>Please wait...</h2>
+                    <p id="loading-status">Crafting your story...</p>
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                    </div>
+                </div>
+
+                <div id="all-set" style="display: none;">
+                    <h2>All Set!</h2>
+                    <p>Thanks for sharing your preferences. We're crafting a personalized experience just for you. Your
+                        recommendations will be ready shortly.</p>
+                    <button id="start-streaming-btn" class="btn btn-primary">Start Streaming</button>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="footer" id="footer-controls">
+            <button id="skip-btn" class="btn btn-secondary">Skip</button>
+            <div id="step-indicator">Step 1 of 5</div>
+            <button id="next-btn" class="btn btn-primary">Next</button>
+        </div>
+
+        <script>
+            // Configuration
+            const TMDB_API_KEY = "829a43a98259bc44cae297489c7e3bba";
+            const BASE_URL = "https://api.themoviedb.org/3";
+            const IMG_BASE_URL = "https://image.tmdb.org/t/p/w342";
+
+            // State
+            let currentStep = 1;
+            const totalSteps = 5;
+            const selections = {
+                genres: [],
+                actors: [],
+                movies: [],
+                shows: []
+            };
+
+            // DOM Elements
+            const stepTitle = document.getElementById('step-title');
+            const stepDescription = document.getElementById('step-description');
+            const nextBtn = document.getElementById('next-btn');
+            const skipBtn = document.getElementById('skip-btn');
+            const stepIndicator = document.getElementById('step-indicator');
+            const footerControls = document.getElementById('footer-controls');
+
+            // Data Fetching
+            async function fetchOnboardingData() {
+                const res = await fetch('./onboarding_data.json');
+                return await res.json();
+            }
+
+            // Rendering
+            function renderGenres(genres) {
+                const grid = document.getElementById('genres-grid');
+                grid.innerHTML = '';
+                genres.forEach(genre => {
+                    const card = document.createElement('div');
+                    card.className = 'card genre-card';
+                    card.textContent = genre.name;
+                    card.dataset.id = genre.id;
+                    card.dataset.name = genre.name;
+                    card.onclick = () => toggleSelection('genres', genre, card);
+                    grid.appendChild(card);
+                });
+            }
+
+            function renderActors(actors) {
+                const grid = document.getElementById('actors-grid');
+                grid.innerHTML = '';
+                actors.forEach(actor => {
+                    const card = document.createElement('div');
+                    card.className = 'card actor-card';
+                    card.dataset.id = actor.id;
+                    card.dataset.name = actor.name;
+                    card.onclick = () => toggleSelection('actors', actor, card);
+
+                    const img = document.createElement('img');
+                    img.src = actor.profile_path ? `${IMG_BASE_URL}${actor.profile_path}` : 'https://via.placeholder.com/342x513?text=No+Image';
+
+                    const content = document.createElement('div');
+                    content.className = 'card-content';
+                    const title = document.createElement('div');
+                    title.className = 'card-title';
+                    title.textContent = actor.name;
+
+                    content.appendChild(title);
+                    card.appendChild(img);
+                    card.appendChild(content);
+                    grid.appendChild(card);
+                });
+            }
+
+            function renderMedia(items, type) {
+                const grid = document.getElementById(type === 'movies' ? 'movies-grid' : 'shows-grid');
+                grid.innerHTML = '';
+                items.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.dataset.id = item.id;
+                    card.dataset.name = item.title || item.name;
+                    card.onclick = () => toggleSelection(type, item, card);
+
+                    const img = document.createElement('img');
+                    img.src = item.poster_path ? `${IMG_BASE_URL}${item.poster_path}` : 'https://via.placeholder.com/342x513?text=No+Image';
+
+                    const content = document.createElement('div');
+                    content.className = 'card-content';
+                    const title = document.createElement('div');
+                    title.className = 'card-title';
+                    title.textContent = item.title || item.name;
+
+                    content.appendChild(title);
+                    card.appendChild(img);
+                    card.appendChild(content);
+                    grid.appendChild(card);
+                });
+            }
+
+            // Interaction
+            function toggleSelection(category, item, cardElement) {
+                const list = selections[category];
+                const index = list.findIndex(i => i.id === item.id);
+
+                if (index > -1) {
+                    list.splice(index, 1);
+                    cardElement.classList.remove('selected');
+                } else {
+                    if (list.length >= 10) {
+                        alert('You can select up to 10 items.');
+                        return;
+                    }
+                    list.push({ id: item.id, name: item.name || item.title });
+                    cardElement.classList.add('selected');
+                }
+
+                updateNextButton();
+            }
+
+            function updateNextButton() {
+                if (currentStep === 1) {
+                    nextBtn.disabled = false;
+                    nextBtn.textContent = 'Next';
+                    return;
+                }
+                const category = getCategoryForStep(currentStep);
+                const count = selections[category].length;
+                nextBtn.disabled = count === 0;
+                nextBtn.textContent = count > 0 ? `Next (${count})` : 'Next';
+            }
+
+            function getCategoryForStep(step) {
+                switch (step) {
+                    case 2: return 'genres';
+                    case 3: return 'actors';
+                    case 4: return 'movies';
+                    case 5: return 'shows';
+                    default: return '';
+                }
+            }
+
+            function updateUI(step) {
+                // Hide all steps
+                document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
+
+                // Show current step
+                document.getElementById(`step-${step}`).classList.add('active');
+
+                // Update Header
+                switch (step) {
+                    case 1:
+                        stepTitle.textContent = "Welcome";
+                        stepDescription.textContent = "Let's personalize your experience.";
+                        break;
+                    case 2:
+                        stepTitle.textContent = "Pick your favorite genres";
+                        stepDescription.textContent = "Select at least one genre you enjoy.";
+                        break;
+                    case 3:
+                        stepTitle.textContent = "Who are your favorite actors?";
+                        stepDescription.textContent = "Select actors you love to watch.";
+                        break;
+                    case 4:
+                        stepTitle.textContent = "Movies you like";
+                        stepDescription.textContent = "Pick some movies you've enjoyed.";
+                        break;
+                    case 5:
+                        stepTitle.textContent = "TV Shows you follow";
+                        stepDescription.textContent = "Select shows you're into.";
+                        break;
+                    case 6:
+                        stepTitle.textContent = "";
+                        stepDescription.textContent = "";
+                        footerControls.style.display = 'none';
+                        break;
+                }
+
+                if (step <= totalSteps) {
+                    stepIndicator.textContent = `Step ${step} of ${totalSteps}`;
+                    updateNextButton();
+                }
+            }
+
+            async function init() {
+                try {
+                    const data = await fetchOnboardingData();
+
+                    renderGenres(data.genres);
+                    renderActors(data.actors);
+                    renderMedia(data.movies, 'movies');
+                    renderMedia(data.series, 'shows');
+
+                    updateUI(currentStep);
+                } catch (e) {
+                    console.error("Error initializing onboarding:", e);
+                    alert("Failed to load content. Please check your connection.");
+                }
+            }
+
+            // Navigation
+            nextBtn.onclick = async () => {
+                if (currentStep < totalSteps) {
+                    currentStep++;
+                    updateUI(currentStep);
+                } else {
+                    await finishOnboarding();
+                }
+            };
+
+            skipBtn.onclick = async () => {
+                if (currentStep < totalSteps) {
+                    currentStep++;
+                    updateUI(currentStep);
+                } else {
+                    await finishOnboarding();
+                }
+            };
+
+            async function finishOnboarding() {
+                currentStep++;
+                updateUI(currentStep); // Show final screen
+
+                // Save to local storage
+                localStorage.setItem('vidsrc_onboarding_selections', JSON.stringify(selections));
+                localStorage.setItem('onboarding_completed', 'true');
+
+                // Trigger background story generation
+                await generateUserStory();
+            }
+
+            document.getElementById('start-streaming-btn').onclick = () => {
+                // Close modal via parent
+                window.parent.postMessage({ type: 'closeOnboarding' }, '*');
+            };
+
+            // LLM Story Generation
+            async function generateUserStory() {
+                const OPENAI_API_KEY = "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";
+                const OPENAI_CHAT_URL = "https://openrouter.ai/api/v1/chat/completions";
+                const MODEL = "x-ai/grok-4-fast";
+
+                updateLoadingStatus("Crafting your story...");
+
+                const genreNames = selections.genres.map(s => s.name).join(', ');
+                const actorNames = selections.actors.map(s => s.name).join(', ');
+                const movieNames = selections.movies.map(s => s.name).join(', ');
+                const showNames = selections.shows.map(s => s.name).join(', ');
+
+                const userProfile = `
+Favorite Genres: ${genreNames}
+Favorite Actors: ${actorNames}
+Favorite Movies: ${movieNames}
+Favorite Series: ${showNames}
+            `.trim();
+
+                const prompt = `
+Based on these answers to our new user survey, please construct a narrative that tells the user's story. You should include highlights from the user's actual answers, as well as your own inferences about what they mean. Here is an example (and you don't need to follow this format exactly - be creative and take risks):
+
+"The user is a fan of action thrillers, romantic comedies, and historical epics. Their favorite actors include Arnold Schwarzzeneger, Renee Zellweger, and The Rock. Favorite movies and shows include The Beekeeper, House of Cards, and both Gladiator Films.
+
+Based on their answers, we can predict that the user came of age sometime between 2005 and 2015, and their tastes are varied. They enjoy hollywood blockbusters and the occasional Netflix drama as well. While nothing in their answers tells us with any certainty about the user's gender, the mix of action thrillers, romantic comedies, historical epics, and dramas suggests that the user is in a relationship with a partner of the opposite sex, and that this device will be used by a couple to watch movies and shows together. 
+
+Finally, the answers do not tell us much about the user's education level or demographics, as everything they chose is or was extremely popular among diverse audiences."
+
+User Profile:
+${userProfile}
+
+Please respond in 100 - 150 words.
+            `;
+
+                try {
+                    const response = await fetch(OPENAI_CHAT_URL, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${OPENAI_API_KEY}`
+                        },
+                        body: JSON.stringify({
+                            model: MODEL,
+                            messages: [{ role: "user", content: prompt }],
+                            max_tokens: 300
+                        })
+                    });
+
+                    const data = await response.json();
+                    if (data.choices && data.choices[0]) {
+                        const story = data.choices[0].message.content;
+                        localStorage.setItem('user_onboarding_story', story);
+                        console.log("Generated User Story:", story);
+
+                        // Chain to recommendations
+                        await generateRecommendations(story, userProfile, OPENAI_API_KEY, OPENAI_CHAT_URL, MODEL);
+
+                    } else {
+                        console.error("Failed to generate story:", data);
+                        finishLoading();
+                    }
+
+                } catch (e) {
+                    console.error("Error calling LLM:", e);
+                    finishLoading();
+                }
+            }
+
+            async function generateRecommendations(story, userProfile, apiKey, url, model) {
+                updateLoadingStatus("Personalizing your recommendations...");
+
+                const prompt = `
+User Profile:
+${userProfile}
+
+User Story:
+${story}
+
+Based on the user profile and story above, please generate a list of 49 movie and TV show recommendations. 
+Return ONLY a valid JSON array of objects. Each object should have:
+- "title": The name of the movie or show
+- "type": "movie" or "tv"
+- "year": The release year (optional but helpful)
+
+Do not include any markdown formatting or explanation. Just the raw JSON array.
+Example:
+[
+  {"title": "The Matrix", "type": "movie", "year": 1999},
+  {"title": "Breaking Bad", "type": "tv", "year": 2008}
+]
+`;
+
+                try {
+                    const response = await fetch(url, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: model,
+                            messages: [{ role: "user", content: prompt }],
+                            max_tokens: 2000 // Need enough tokens for 49 items
+                        })
+                    });
+
+                    const data = await response.json();
+                    if (data.choices && data.choices[0]) {
+                        let content = data.choices[0].message.content;
+                        // Clean up markdown if present
+                        content = content.replace(/```json/g, '').replace(/```/g, '').trim();
+
+                        let recommendations = [];
+                        try {
+                            recommendations = JSON.parse(content);
+                        } catch (parseError) {
+                            console.error("Failed to parse recommendations JSON:", parseError);
+                            // Fallback or retry? For now, just finish.
+                            finishLoading();
+                            return;
+                        }
+
+                        console.log("Generated Recommendations:", recommendations);
+                        await enrichRecommendations(recommendations);
+
+                    } else {
+                        console.error("Failed to generate recommendations:", data);
+                        finishLoading();
+                    }
+                } catch (e) {
+                    console.error("Error generating recommendations:", e);
+                    finishLoading();
+                }
+            }
+
+            async function enrichRecommendations(list) {
+                updateLoadingStatus("Hooking up your streams...");
+
+                const enrichedList = [];
+                // Process in batches to avoid rate limits if possible, but for 49 items sequential is safer for order and limits
+                // We'll do parallel with a limit, or just sequential for simplicity and reliability.
+                // Sequential is safer for rate limits.
+
+                for (const item of list) {
+                    try {
+                        const searchUrl = `${BASE_URL}/search/${item.type}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(item.title)}&year=${item.year}`;
+                        const res = await fetch(searchUrl);
+                        const data = await res.json();
+
+                        if (data.results && data.results.length > 0) {
+                            // Take the first result
+                            const match = data.results[0];
+                            enrichedList.push(match);
+                        }
+                    } catch (e) {
+                        console.error(`Failed to enrich ${item.title}:`, e);
+                    }
+                }
+
+                localStorage.setItem('vidsrc_recommendations', JSON.stringify(enrichedList));
+                finishLoading();
+            }
+
+            function updateLoadingStatus(msg) {
+                const el = document.getElementById('loading-status');
+                if (el) el.textContent = msg;
+            }
+
+            function finishLoading() {
+                document.getElementById('please-wait').style.display = 'none';
+                document.getElementById('all-set').style.display = 'block';
+            }
+
+            // Start
+            init();
+
+        </script>
+</body>
+
+</html>

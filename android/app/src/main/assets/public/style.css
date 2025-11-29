@@ -790,11 +790,51 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-#chat-iframe-container.hidden {
-    transform: scale(0.8) translateY(20px);
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
+pointer-events: none;
+}
+
+/* Mobile Chat Layout */
+@media (max-width: 768px) {
+    #chat-iframe-container {
+        /* Portrait: Full screen, bottom aligned */
+        bottom: 0;
+        right: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+    }
+
+    #chat-iframe-container.hidden {
+        transform: translateY(100%);
+        /* Slide down */
+    }
+
+    #chat-fab {
+        bottom: 20px;
+        right: 20px;
+        z-index: 10000;
+    }
+}
+
+@media (max-width: 900px) and (orientation: landscape) {
+    #chat-iframe-container {
+        /* Landscape: Chat column on right third */
+        top: 0;
+        bottom: 0;
+        right: 0;
+        width: 33vw;
+        height: 100%;
+        border-radius: 0;
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+        transform-origin: right center;
+    }
+
+    #chat-iframe-container.hidden {
+        transform: translateX(100%);
+        /* Slide right */
+    }
 }
 
 #chat-iframe {
@@ -816,4 +856,28 @@ body {
         bottom: 20px;
         right: 20px;
     }
+}
+
+/* Onboarding Modal */
+#onboarding-modal-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 20000;
+    background: var(--bg-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#onboarding-modal-container.hidden {
+    display: none;
+}
+
+#onboarding-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
 }

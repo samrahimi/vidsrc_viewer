@@ -107,6 +107,7 @@ async function initApp() {
     const onboardingCompleted = localStorage.getItem('onboarding_completed');
     if (!onboardingCompleted) {
         document.getElementById('onboarding-container').classList.remove('hidden');
+        document.getElementById('chat-fab').classList.add('hidden'); // Hide chat during onboarding
     } else {
         // Normal flow
         fetchTrending('movie', 'day');
@@ -179,6 +180,7 @@ function setupEventListeners() {
     window.addEventListener('message', (event) => {
         if (event.data.type === 'closeOnboarding') {
             document.getElementById('onboarding-container').classList.add('hidden');
+            document.getElementById('chat-fab').classList.remove('hidden'); // Show chat after onboarding
             // Initialize main content if not already done (or just refresh feeds)
             fetchTrending('movie', 'day');
             fetchTrending('tv', 'week');

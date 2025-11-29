@@ -10,6 +10,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="config.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.js"
+        integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+
+    <script src="longTermMemory.js"></script>
+
     <style>
         body {
             background-color: #000;
@@ -118,7 +123,7 @@
         /* Chat Container */
         #chat-container {
             position: absolute;
-            bottom: 80px;
+            bottom: 140px;
             right: 20px;
             width: 350px;
             height: 500px;
@@ -243,15 +248,24 @@
             margin-bottom: 1.5rem;
         }
 
-        @media (max-width: 768px) {
-            .modal-layout {
-                flex-direction: column;
-            }
+        .modal-poster {
+            width: 150px;
+            margin: 0 auto;
+        }
+        }
 
-            .modal-poster {
-                width: 150px;
-                margin: 0 auto;
-            }
+        /* Wake Overlay */
+        #wake-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 15;
+            /* Below controls (20), above iframe */
+            background: transparent;
+            pointer-events: none;
+            /* Default: let clicks pass to iframe */
         }
     </style>
 </head>
@@ -260,6 +274,7 @@
 
     <div class="player-container">
         <iframe id="video-player" allowfullscreen></iframe>
+        <div id="wake-overlay"></div>
 
         <!-- Top Right Panel: Home, Bookmark, Info -->
         <div class="overlay-panel overlay-top-right" id="panel-top-right">
@@ -351,6 +366,8 @@
 
         const panels = document.querySelectorAll('.overlay-panel');
 
+        const wakeOverlay = document.getElementById('wake-overlay');
+
         // --- Inactivity Timer ---
         let inactivityTimer;
         const INACTIVITY_DELAY = 10000; // 10 seconds
@@ -360,17 +377,42 @@
             panels.forEach(p => p.classList.remove('hidden'));
             document.body.style.cursor = 'default';
 
+            // Allow clicks to pass through to iframe when controls are visible
+            // actually, we want the overlay to be inactive so we can click buttons
+            // BUT if we click the video, we want to pause it.
+            // The issue is: if controls are hidden, we can't click buttons (they are hidden).
+            // We want the FIRST click to just wake up controls.
+
+            // When controls are visible:
+            // Overlay should NOT capture clicks, so we can interact with iframe (play/pause) AND buttons.
+            wakeOverlay.style.pointerEvents = 'none';
+
             clearTimeout(inactivityTimer);
             inactivityTimer = setTimeout(() => {
                 // Hide panels
                 panels.forEach(p => p.classList.add('hidden'));
-                document.body.style.cursor = 'none'; // Optional: hide cursor too
+                document.body.style.cursor = 'none';
+
+                // When controls are hidden:
+                // Overlay SHOULD capture the next click to wake up.
+                wakeOverlay.style.pointerEvents = 'auto';
             }, INACTIVITY_DELAY);
         }
 
         // Listen for user activity
         ['mousemove', 'mousedown', 'keydown', 'touchstart'].forEach(evt => {
             document.addEventListener(evt, resetInactivityTimer);
+        });
+
+        // Explicitly listen to wake overlay touch/click to ensure it triggers
+        wakeOverlay.addEventListener('click', (e) => {
+            // e.stopPropagation(); // Don't need to stop, just need to trigger reset
+            console.log("Wake overlay clicked");
+            resetInactivityTimer();
+        });
+        wakeOverlay.addEventListener('touchstart', (e) => {
+            console.log("Wake overlay touched");
+            resetInactivityTimer();
         });
 
         // Initial start
@@ -419,6 +461,7 @@
         dislikeBtn.addEventListener('click', () => toggleRating('dislike'));
 
 
+
         // --- Metrics & State ---
         let nowWatching = null;
         let engagementTimer = null;
@@ -450,6 +493,25 @@
                 };
 
                 localStorage.setItem('vidsrc_now_watching', JSON.stringify(nowWatching));
+                addLongTermMemory(`User started watching ${nowWatching.title} (${nowWatching.year}) - ${nowWatching.type}. Synopsis: ${nowWatching.description}`);
+
+                // This stuff needs to be refactored!
+
+                const memories = getLongTermMemories(false, "string")
+                console.log(memories)
+
+
+                const explanation = "The following is a list of key events and interactions for the current user, and represents in-app actions (media views, ratings given, bookmarks applied, as well as previous conversations with the AI chat agent). Please consider this context when making recommendations and you may refer to it in conversation as needed. As you get to know the user, this context will grow and evolve. Finally, if the user complains about being tracked, reassure that that all data is saved locally on their device, not some server."
+                const userContext = `${explanation}\n\n${memories}`
+
+                setTimeout(() => {
+                    injectContext({ type: "setUserContext", payload: userContext }, "#chat-iframe")
+                }, 2500)
+
+                setTimeout(() => {
+                    injectContext({ type: "setApplicationContext", payload: "Currently Watching: User started watching ${nowWatching.title} (${nowWatching.year}) - ${nowWatching.type}" }, "#chat-iframe")
+                }, 3000)
+
 
                 // Metrics
                 recordMetric('view', nowWatching);

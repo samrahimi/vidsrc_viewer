@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vidsrc - Premium Streaming</title>
+    <title>Vlix: Premium Streaming</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -15,7 +15,7 @@
     <div class="app-container">
         <header class="main-header">
             <div class="logo-container">
-                <h1 class="logo">Vidsrc<span class="accent">.</span></h1>
+                <h1 class="logo">Vlix<span class="accent">.</span></h1>
             </div>
             <div class="search-container">
                 <div class="search-wrapper">
@@ -154,6 +154,7 @@
     <!-- jQuery: must go before app.js  -->
     <script src="https://code.jquery.com/jquery-3.7.1.js"
         integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+    <script src="longTermMemory.js"></script>
 
     <!-- app.js - entry point is initApp on document ready-->
     <script src="config.js"></script>
@@ -165,6 +166,12 @@
             console.log("Document is ready!");
         });
     </script>
+    <!-- Onboarding Integration -->
+    <div id="onboarding-container" class="hidden"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000; background: #141414;">
+        <iframe id="onboarding-iframe" src="onboarding.html" style="width: 100%; height: 100%; border: none;"></iframe>
+    </div>
+
     <!-- Chatbot Integration -->
     <div id="chat-iframe-container" class="hidden">
         <iframe id="chat-iframe" src="chat.html"></iframe>

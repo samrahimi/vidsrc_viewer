@@ -1,37 +1,29 @@
-const OPENAI_API_KEY = "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";
+const OPENAI_API_KEY = "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";
+const OPENAI_CHAT_URL = "https://openrouter.ai/api/v1/chat/completions";
+const AGENT_MODEL_ID = "x-ai/grok-4-fast";
+
 const TMDB_API_KEY = "829a43a98259bc44cae297489c7e3bba"; // Copied from app.js
 const BASE_URL = "https://api.themoviedb.org/3";
+const SUMMARIZATION_MODEL = "x-ai/grok-4-fast"
+const SUMMARIZATION_PROMPT = `Based on the following dialogue between a user and an AI agent, please summarize the interaction in 100 words or less. For example:
 
-const messagesContainer = document.getElementById('messages-container');
-const chatInput = document.getElementById('chat-input');
-const sendBtn = document.getElementById('send-btn');
-const newChatBtn = document.getElementById('new-chat-btn');
+EXAMPLE INPUT (may be in JSON format or text)
 
-const MAX_TURNS_PER_CONVERSATION = 10; // Configurable limit
-let turnCount = 0;
+User: I want to watch a movie about superheroes that doesn't suck.
+{... bunch of tool calls to search for superhero movies ...}
+Assistant: Here are some superhero movies:
 
-// Fetch genres map for mapping IDs to names
-let genres = {};
-async function fetchGenres() {
-    try {
-        const response = await fetch(`${BASE_URL}/genre/movie/list?api_key=${TMDB_API_KEY}`);
-        const data = await response.json();
-        data.genres.forEach(g => genres[g.id] = g.name);
+1. "Spider-Man: No Way Home" (2021)   {... poster and description html ...}
+2. "Black Panther" (2018)  {... poster and description html ...}
+3. "Avengers: Infinity War" (2018) - A superhero movie {... poster and description html ...}
 
-        // Also fetch TV genres
-        const tvResponse = await fetch(`${BASE_URL}/genre/tv/list?api_key=${TMDB_API_KEY}`);
-        const tvData = await tvResponse.json();
-        tvData.genres.forEach(g => genres[g.id] = g.name);
-    } catch (error) {
-        console.error('Error fetching genres:', error);
-    }
-}
-fetchGenres();
+EXAMPLE OUTPUT (must be in text format): 
 
-let conversationHistory = [
-    {
-        role: "system",
-        content: `You are the Chatflix streaming media concierge. Your goal is to help users find content and provide them with a rich, interactive experience.
+The user requested a movie about superheroes that doesn't suck. The assistant suggests Spider-Man: No Way Home (2021), Black Panther (2018), and Avengers: Infinity War (2018).
+`
+
+const CONTEXT = { userContext: 'Not Available', applicationContext: 'Homepage' }
+const DEFAULT_PROMPT_TEMPLATE = `You are the Chatflix streaming media concierge. Your goal is to help users find content and provide them with a rich, interactive experience.
 
 When you find a movie or TV show for the user, you MUST display it using the specific "Feed Item" HTML format below. Do NOT just list the name.
 
@@ -40,7 +32,7 @@ You must output the following HTML structure for EACH movie or show you recommen
 
 \`\`\`html
 <div class="chat-feed-item">
-    <div class="chat-media-card" onclick="window.parent.playContent('TMDB_ID', 'TYPE')">
+    <div class="chat-media-card" onclick="playContent('TMDB_ID', 'TYPE')">
         <img src="https://image.tmdb.org/t/p/w500POSTER_PATH" alt="TITLE" class="chat-card-poster">
         <div class="chat-card-actions">
             <button class="chat-btn-icon-small" onclick="event.stopPropagation(); window.parent.openInfoModal('TMDB_ID', 'TYPE')">
@@ -62,9 +54,143 @@ You must output the following HTML structure for EACH movie or show you recommen
    - The \`chat-description\` is optional. Use it to provide the TMDB overview (shortened if needed) OR your own commentary (e.g., "This is a classic."). If you have nothing to add, you can omit the <p> tag.
 3. **Links**: The tile handles the clicking.
 4. **Style**: Keep it clean. Do not add extra markdown bolding around the title since the HTML handles styling.
+5. **Context**: The \`USER_CONTEXT\` may be provided to you. Use it to understand the user's preferences and provide relevant recommendations. The \`APPLICATION_CONTEXT\` may  tell you what the user is currently watching or browsing in the app, so pay attention. If it is missing, just ignore it. Finally, the \`CONVERSATION CONTEXT\` is just a summarized, token-efficient history of the current conversation. If not present, it means this is a new conversation.
+
+### USER CONTEXT:
+{{USER_CONTEXT}}
+
+### APPLICATION CONTEXT:
+{{APPLICATION_CONTEXT}}
+
+### CURRENT CONVERSATION CONTEXT:
 `
+
+
+// Returns the base system prompt with the user and application context filled in, and an empty conversation context
+const getBaseSystemPrompt = () => {
+    return DEFAULT_PROMPT_TEMPLATE.replace("{{USER_CONTEXT}}", CONTEXT.userContext)
+        .replace("{{APPLICATION_CONTEXT}}", CONTEXT.applicationContext);
+}
+
+// We used to set the base system prompt as a constant on page load, but now we do it JIT so that it reflects the latest context updates from the parent
+// In theory, we have a race condition where the user could send a message before the context is updated, but this is exceedingly unlikely to happen. And if it does, so what... the chatbot will function properly, without personalizations or awareness of overall application state
+var conversationHistory = [
+    {
+        role: "system",
+        content: getBaseSystemPrompt()
     }
 ];
+
+// Listen for context updates from the parent. The parent will always have the most up-to-date context.
+window.addEventListener('message', (event) => {
+    console.log("Received message from parent:", event.data)
+
+
+    switch (event.data.type) {
+        case 'setUserContext':
+            CONTEXT.userContext = event.data.payload
+            break;
+        case 'setApplicationContext':
+            CONTEXT.applicationContext = event.data.payload
+            break;
+
+    }
+
+    console.log("Context updated by postMessage from parent. New context:", CONTEXT)
+    console.log("Base system prompt:", getBaseSystemPrompt())
+
+    conversationHistory[0].content = getBaseSystemPrompt()
+});
+
+
+
+
+const messagesContainer = document.getElementById('messages-container');
+const chatInput = document.getElementById('chat-input');
+const sendBtn = document.getElementById('send-btn');
+const newChatBtn = document.getElementById('new-chat-btn');
+
+const MAX_TURNS_PER_CONVERSATION = 50; // Not really needed thx to compression but just to prevent abuse...
+
+let turnCount = 0;
+
+function playContent(tmdbId, type) {
+    top.location.href = 'watch.html?tmdbId=' + tmdbId + '&type=' + type;
+}
+
+// Fetch genres map for mapping IDs to names
+let genres = {};
+async function fetchGenres() {
+    try {
+        const response = await fetch(`${BASE_URL}/genre/movie/list?api_key=${TMDB_API_KEY}`);
+        const data = await response.json();
+        data.genres.forEach(g => genres[g.id] = g.name);
+
+        // Also fetch TV genres
+        const tvResponse = await fetch(`${BASE_URL}/genre/tv/list?api_key=${TMDB_API_KEY}`);
+        const tvData = await tvResponse.json();
+        tvData.genres.forEach(g => genres[g.id] = g.name);
+    } catch (error) {
+        console.error('Error fetching genres:', error);
+    }
+}
+fetchGenres();
+
+
+
+// Add context to the system prompt. This is used to compress the conversation history, and to personalize interactions
+const addConversationContext = (context) => {
+    conversationHistory[0].content += `\n\n${context}`
+}
+
+// Reset the system prompt context
+const resetConversationContext = () => {
+    conversationHistory[0].content = getBaseSystemPrompt()
+}
+
+// Compress the conversation history into a few sentences of text.
+// By using compressConversation and addContext, we can keep the conversation going indefinitely with minimal cost
+const compressConversation = async () => {
+    const history = conversationHistory.filter(msg => msg.role !== "system")
+    const historyString = JSON.stringify(history, null, 2)
+
+    const payload = [{
+        role: "system",
+        content: SUMMARIZATION_PROMPT
+    },
+    {
+        role: "user",
+        content: `Here is the interaction to be summarized. Please make your summary concise yet highly detailed, by increasing information density and keeping data that teaches us something meaningful about the user's taste in media and things that will help us make better recommendations in the future (for example, if the user says they have already seen a certain movie, we need to know that so we don't recommend it again) 
+        
+        Additionally, your summary will be used to perform context compression in case the user wishes to continue the conversation with the agent (so it is important the we capture the *meaning* of the conversation this far). Conversation history below:
+
+        ${historyString}`
+    }
+    ]
+
+    const response = await fetch(OPENAI_CHAT_URL, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+            model: SUMMARIZATION_MODEL, //using gpt-5-mini because openai gives me 10M / daily free tokens... not an endorsement of this model
+            messages: payload
+        })
+    });
+
+    const data = await response.json();
+
+    if (data.error) {
+        throw new Error(data.error.message);
+    }
+
+
+    const compressedHistory = data.choices[0].message.content
+    return compressedHistory
+}
+
 
 // Tool Definitions
 const tools = [
@@ -104,7 +230,10 @@ function startNewChat() {
     if (conversationHistory.length <= 1) return;
 
     // Reset history
+    resetConversationContext();
     conversationHistory = [conversationHistory[0]]; // Keep system message
+    console.log("Conversation history reset to:", JSON.stringify(conversationHistory, null, 2))
+
 
     // Clear UI
     messagesContainer.innerHTML = '';
@@ -155,14 +284,14 @@ async function sendMessage() {
 }
 
 async function processChat() {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch(OPENAI_CHAT_URL, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${OPENAI_API_KEY}`
         },
         body: JSON.stringify({
-            model: "gpt-4o", // Upgraded to 4o for better instruction following with HTML
+            model: AGENT_MODEL_ID, // Upgraded to 4o for better instruction following with HTML
             messages: conversationHistory,
             tools: tools,
             tool_choice: "auto"
@@ -203,6 +332,22 @@ async function processChat() {
 
         // Increment turn count (1 turn = user message + assistant response)
         turnCount++;
+
+        // Compress and add to long term memory
+        const compressedConversation = await compressConversation();
+        addLongTermMemory(compressedConversation);
+
+        // Add compressed conversation to context, and remove the original messages from the conversation... note that they will remain in the UI so as not to confuse the user
+        addConversationContext(compressedConversation);
+
+        // Remove original user / assistant / tool messages from conversation history, as they have now been summarized and injected into the context
+        conversationHistory = [conversationHistory[0]];
+
+        // Debug
+        console.log("Conversation history after compression:", JSON.stringify(conversationHistory, null, 2))
+
+        // Done.
+
 
         // Check limit
         if (turnCount >= MAX_TURNS_PER_CONVERSATION) {
