@@ -300,7 +300,7 @@ function renderRecommendationsFeed() {
     recommendationsSection.classList.remove('hidden');
     recommendationsSection.innerHTML = `
         <div class="section-header">
-            <h2>Recommended for You</h2>
+            <h2>You Might Like</h2>
             <a href="#" id="view-all-recs" class="view-more">View More</a>
         </div>
         <div class="media-grid" id="recommendations-grid"></div>
