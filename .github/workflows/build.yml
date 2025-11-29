@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         # This creates three separate jobs: one for each OS
-        os: [macos-latest, ubuntu-latest, windows-latest]
+        os: [macos-latest, macos-13, ubuntu-latest, windows-latest]
 
     steps:
       - name: Check out Git repository
