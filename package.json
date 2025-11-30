@@ -29,6 +29,8 @@
     "dependencies": {
         "@capacitor/android": "^7.4.4",
         "@capacitor/cli": "^7.4.4",
-        "@capacitor/core": "^7.4.4"
+        "@capacitor/core": "^7.4.4",
+        "@capgo/capacitor-updater": "^7.29.0",
+        "adm-zip": "^0.5.16"
     }
 }

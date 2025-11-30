@@ -245,7 +245,110 @@ createWindow = function () {
             win.loadURL(urlToLoad);
         }
     } else {
-        const browserPath = path.join(__dirname, 'browser', 'index.html');
-        win.loadFile(browserPath);
+        // Check for updates
+        const userDataPath = app.getPath('userData');
+        const updatesDir = path.join(userDataPath, 'updates');
+        const currentUpdateDir = path.join(updatesDir, 'current');
+        const updateIndex = path.join(currentUpdateDir, 'index.html');
+
+        if (fs.existsSync(updateIndex)) {
+            console.log('Loading updated version from:', updateIndex);
+            win.loadFile(updateIndex);
+        } else {
+            const browserPath = path.join(__dirname, 'browser', 'index.html');
+            win.loadFile(browserPath);
+        }
+
+        // Check for new updates in background
+        checkForUpdates(win);
     }
 };
+
+const fs = require('fs');
+const https = require('https');
+const AdmZip = require('adm-zip');
+
+function checkForUpdates(win) {
+    const versionUrl = 'https://vlixy.netlify.app/updates/version.json';
+
+    https.get(versionUrl, (res) => {
+        let data = '';
+        res.on('data', (chunk) => data += chunk);
+        res.on('end', () => {
+            try {
+                const remoteVersion = JSON.parse(data);
+                const packageJson = require('./package.json');
+                const currentVersion = packageJson.version; // This might need to be stored/updated in userData to track applied updates
+
+                // Simple version comparison (assuming semver)
+                if (compareVersions(remoteVersion.version, currentVersion) > 0) {
+                    console.log(`New version available: ${remoteVersion.version}`);
+                    downloadUpdate(remoteVersion.url, win);
+                }
+            } catch (e) {
+                console.error('Error checking for updates:', e);
+            }
+        });
+    }).on('error', (e) => {
+        console.error('Error checking for updates:', e);
+    });
+}
+
+function compareVersions(v1, v2) {
+    const parts1 = v1.split('.').map(Number);
+    const parts2 = v2.split('.').map(Number);
+    for (let i = 0; i < 3; i++) {
+        if (parts1[i] > parts2[i]) return 1;
+        if (parts1[i] < parts2[i]) return -1;
+    }
+    return 0;
+}
+
+function downloadUpdate(url, win) {
+    const userDataPath = app.getPath('userData');
+    const updatesDir = path.join(userDataPath, 'updates');
+    if (!fs.existsSync(updatesDir)) fs.mkdirSync(updatesDir, { recursive: true });
+
+    const zipPath = path.join(updatesDir, 'update.zip');
+    const file = fs.createWriteStream(zipPath);
+
+    https.get(url, (response) => {
+        response.pipe(file);
+        file.on('finish', () => {
+            file.close(() => {
+                console.log('Update downloaded');
+                installUpdate(zipPath, updatesDir, win);
+            });
+        });
+    }).on('error', (err) => {
+        fs.unlink(zipPath, () => { });
+        console.error('Error downloading update:', err);
+    });
+}
+
+function installUpdate(zipPath, updatesDir, win) {
+    try {
+        const zip = new AdmZip(zipPath);
+        const extractPath = path.join(updatesDir, 'current');
+
+        // Clean old update
+        if (fs.existsSync(extractPath)) {
+            fs.rmSync(extractPath, { recursive: true, force: true });
+        }
+
+        zip.extractAllTo(extractPath, true);
+        console.log('Update installed to:', extractPath);
+
+        // Notify user or just reload on next start
+        // For now, let's ask the user if they want to restart
+        win.webContents.executeJavaScript(`
+            if(confirm("A new update has been downloaded. Restart now to apply?")) {
+                window.location.reload(); 
+            }
+        `);
+
+    } catch (e) {
+        console.error('Error installing update:', e);
+    }
+}
+

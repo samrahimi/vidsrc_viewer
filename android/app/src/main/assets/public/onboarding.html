@@ -332,6 +332,7 @@
             <div id="step-indicator">Step 1 of 5</div>
             <button id="next-btn" class="btn btn-primary">Next</button>
         </div>
+        <script src="longTermMemory.js"></script>
 
         <script>
             // Configuration
@@ -619,6 +620,7 @@ Please respond in 100 - 150 words.
                     if (data.choices && data.choices[0]) {
                         const story = data.choices[0].message.content;
                         localStorage.setItem('user_onboarding_story', story);
+                        addLongTermMemory(story); // The user's story is a concise summary of the movies they like and predictions about their age and relationship status
                         console.log("Generated User Story:", story);
 
                         // Chain to recommendations

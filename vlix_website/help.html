@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help & FAQ - Vlix</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        details>summary {
+            list-style: none;
+        }
+
+        details>summary::-webkit-details-marker {
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 text-white min-h-screen flex flex-col">
+
+    <!-- Navigation -->
+    <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <a href="index.html" class="flex items-center space-x-2">
+                <img src="logo.png" alt="Vlix Logo" class="h-8 w-8">
+                <span
+                    class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">Vlix</span>
+            </a>
+        </div>
+        <div class="hidden md:flex space-x-8">
+            <a href="index.html" class="text-gray-400 hover:text-purple-400 transition">Download</a>
+            <a href="features.html" class="text-gray-400 hover:text-purple-400 transition">Features</a>
+            <a href="help.html" class="text-white font-semibold hover:text-purple-400 transition">Help & FAQ</a>
+        </div>
+    </nav>
+
+    <!-- Help Section -->
+    <main class="flex-grow container mx-auto px-6 py-12 max-w-3xl">
+        <h1 class="text-4xl font-bold mb-12 text-center">
+            How can we <span
+                class="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">help?</span>
+        </h1>
+
+        <div class="space-y-6">
+
+            <!-- FAQ Item 1 -->
+            <details class="glass rounded-xl overflow-hidden group">
+                <summary class="p-6 cursor-pointer flex justify-between items-center hover:bg-white/5 transition">
+                    <h3 class="text-lg font-semibold">How do I install Vlix on Windows?</h3>
+                    <i class="fas fa-chevron-down transform group-open:rotate-180 transition"></i>
+                </summary>
+                <div class="p-6 pt-0 text-gray-400 leading-relaxed border-t border-white/10">
+                    <ol class="list-decimal list-inside space-y-2 mt-4">
+                        <li>Download the <strong>Windows .zip</strong> file.</li>
+                        <li>Right-click the file and select <strong>Extract All</strong>.</li>
+                        <li>Open the extracted folder and double-click <strong>Vlix.exe</strong>.</li>
+                        <li>If you see a "Windows protected your PC" warning, click <strong>More info</strong> and then
+                            <strong>Run anyway</strong>.
+                        </li>
+                    </ol>
+                </div>
+            </details>
+
+            <!-- FAQ Item 2 -->
+            <details class="glass rounded-xl overflow-hidden group">
+                <summary class="p-6 cursor-pointer flex justify-between items-center hover:bg-white/5 transition">
+                    <h3 class="text-lg font-semibold">How do I install Vlix on macOS?</h3>
+                    <i class="fas fa-chevron-down transform group-open:rotate-180 transition"></i>
+                </summary>
+                <div class="p-6 pt-0 text-gray-400 leading-relaxed border-t border-white/10">
+                    <ol class="list-decimal list-inside space-y-2 mt-4">
+                        <li>Download the <strong>.dmg</strong> file for your Mac (Apple Silicon or Intel).</li>
+                        <li>Open the file and drag the Vlix icon to your <strong>Applications</strong> folder.</li>
+                        <li>Double-click Vlix to open it.</li>
+                        <li>If you see a warning about an "Unidentified Developer", go to <strong>System Settings >
+                                Privacy & Security</strong> and click <strong>Open Anyway</strong> near the bottom.</li>
+                    </ol>
+                </div>
+            </details>
+
+            <!-- FAQ Item 3 -->
+            <details class="glass rounded-xl overflow-hidden group">
+                <summary class="p-6 cursor-pointer flex justify-between items-center hover:bg-white/5 transition">
+                    <h3 class="text-lg font-semibold">How do I install Vlix on Android?</h3>
+                    <i class="fas fa-chevron-down transform group-open:rotate-180 transition"></i>
+                </summary>
+                <div class="p-6 pt-0 text-gray-400 leading-relaxed border-t border-white/10">
+                    <ol class="list-decimal list-inside space-y-2 mt-4">
+                        <li>Download the <strong>.apk</strong> file to your phone.</li>
+                        <li>Tap the notification when the download finishes.</li>
+                        <li>If prompted, allow installation from <strong>Unknown Sources</strong> in your browser
+                            settings.</li>
+                        <li>Tap <strong>Install</strong>.</li>
+                    </ol>
+                </div>
+            </details>
+
+            <!-- FAQ Item 4 -->
+            <details class="glass rounded-xl overflow-hidden group">
+                <summary class="p-6 cursor-pointer flex justify-between items-center hover:bg-white/5 transition">
+                    <h3 class="text-lg font-semibold">How do I use the AI Chat?</h3>
+                    <i class="fas fa-chevron-down transform group-open:rotate-180 transition"></i>
+                </summary>
+                <div class="p-6 pt-0 text-gray-400 leading-relaxed border-t border-white/10">
+                    <p class="mt-4">
+                        Look for the chat bubble icon in the bottom right corner of the app. Click it to open the
+                        assistant. You can ask for recommendations like "Show me 90s action movies" or ask questions
+                        about the movie you're currently watching.
+                    </p>
+                </div>
+            </details>
+
+            <!-- FAQ Item 5 -->
+            <details class="glass rounded-xl overflow-hidden group">
+                <summary class="p-6 cursor-pointer flex justify-between items-center hover:bg-white/5 transition">
+                    <h3 class="text-lg font-semibold">What Content Can I Watch?</h3>
+                    <i class="fas fa-chevron-down transform group-open:rotate-180 transition"></i>
+                </summary>
+                <div class="p-6 pt-0 text-gray-400 leading-relaxed border-t border-white/10">
+                    <p class="mt-4">
+                        Vlix is a universal streaming service, free from region restrictions. We offer free access to
+                        over 80,000 movies and 500,000 TV episodes. You can watch movies and TV shows from all over the
+                        world, although the majority of our content is in English. If it is available on any
+                        conventional streaming service (i.e. Netflix), has been sold as a digital download on Apple /
+                        Google / etc, or is currently playing in theaters, it is most likely available on Vlix. Most of
+                        the movies and series we offer have subtitles in the language of your choice.
+                    </p>
+                </div>
+            </details>
+            <!-- FAQ Item 6 -->
+            <details class="glass rounded-xl overflow-hidden group">
+                <summary class="p-6 cursor-pointer flex justify-between items-center hover:bg-white/5 transition">
+                    <h3 class="text-lg font-semibold">Can I Get Viruses From Using Vlix?</h3>
+                    <i class="fas fa-chevron-down transform group-open:rotate-180 transition"></i>
+                </summary>
+                <div class="p-6 pt-0 text-gray-400 leading-relaxed border-t border-white/10">
+                    <p class="mt-4">
+                        No, Vlix is specifically designed to give you a safe and secure experience viewing free streams
+                        online. Streams are loaded in a sandboxed environment, free from popups, viruses, and malware.
+                    </p>
+                </div>
+            </details>
+            <!-- FAQ Item 7 -->
+            <details class="glass rounded-xl overflow-hidden group">
+                <summary class="p-6 cursor-pointer flex justify-between items-center hover:bg-white/5 transition">
+                    <h3 class="text-lg font-semibold">How Does Vlix Handle Copyright?</h3>
+                    <i class="fas fa-chevron-down transform group-open:rotate-180 transition"></i>
+                </summary>
+                <div class="p-6 pt-0 text-gray-400 leading-relaxed border-t border-white/10">
+                    <p class="mt-4">
+                        Vlix does not host or serve any content itself. We offer a specialized web browser and AI-driven
+                        search experience for finding free content online, and a sandboxed environment to watch it in.
+                        DMCA notices should be sent to the content providers, not to Vlix.
+                    </p>
+                </div>
+            </details>
+
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="container mx-auto px-6 py-8 text-center text-gray-600 text-sm">
+        &copy; 2024 Vlix. All rights reserved.
+    </footer>
+
+</body>
+
+</html>

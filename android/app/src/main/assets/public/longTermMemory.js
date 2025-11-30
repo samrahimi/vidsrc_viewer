@@ -1,6 +1,7 @@
 // Long Term Memory: A plain english log that contains the user's journey through the app and their interactionos with the chatflix agent.
 // We plan to make this user viewable and user editable in the future, so each entry should be concise, self-contained, and semantically meaningful. Long term memory entries should be in the english language.
-
+const TRUNCATE_AFTER = 40 // Only retrieve 40 long term memory entries by default (first 40 or last 40 depending on reverse param)
+const MAX_SINGLE_MEMORY_SIZE = 2048 //about 512 tokens... in case the summarizer goes haywire
 const addLongTermMemory = (memory) => {
     const memories = localStorage.getItem("longTermMemory")
     var response = []
@@ -11,6 +12,10 @@ const addLongTermMemory = (memory) => {
 
     // Inject a timestamp into the memory before saving. Memory should remain a plaintext string.
     memory = `${new Date().toLocaleString()}: ${memory}`
+    if (memory.length > MAX_SINGLE_MEMORY_SIZE) {
+        console.log("Item exceeded MAX_SINGLE_MEMORY_SIZE cap. Content was truncated.")
+        memory = memory.slice(0, MAX_SINGLE_MEMORY_SIZE)
+    }
     response.push(memory)
     localStorage.setItem("longTermMemory", JSON.stringify(response))
 
@@ -22,10 +27,26 @@ const addLongTermMemory = (memory) => {
 const getLongTermMemories = (reverse = false, responseFormat = "array") => {
     const memories = localStorage.getItem("longTermMemory")
     var response = []
+
+    //get most recent memories up to TRUNCATE_AFTER cap, then set the order based on reverse param
     if (memories) {
-        response = reverse ? JSON.parse(memories).reverse() : JSON.parse(memories)
+        const allMemories = JSON.parse(memories).reverse()
+        const truncatedMemories = allMemories.slice(0, TRUNCATE_AFTER)
+        if (!reverse) {
+            response = truncatedMemories.reverse()
+        } else {
+            response = truncatedMemories
+        }
+
+        if (allMemories.length > TRUNCATE_AFTER) {
+            console.log("Long term memory count exceeded TRUNCATE_AFTER cap. Some memories were truncated.")
+        }
+
+        return responseFormat === "array" ? response : response.join("\n\n")
+
+    } else {
+        return responseFormat === "array" ? [] : ""
     }
-    return responseFormat === "array" ? response : response.join("\n\n")
 }
 
 // Clears the long term memory

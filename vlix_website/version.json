@@ -1,0 +1,10 @@
+{
+  "build": 19,
+  "files": {
+    "android": "installers/Vlix-Build-19-Android.apk",
+    "windows": "installers/Vlix-Build-19-Windows.zip",
+    "linux": "installers/Vlix-Build-19-Linux.AppImage",
+    "macos_intel": "installers/Vlix-Build-19-macOS-Intel.dmg",
+    "macos_arm64": "installers/Vlix-Build-19-macOS-AppleSilicon.dmg"
+  }
+}

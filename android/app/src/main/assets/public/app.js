@@ -2,6 +2,7 @@ const API_KEY = "829a43a98259bc44cae297489c7e3bba";
 const BASE_URL = "https://api.themoviedb.org/3";
 const IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
 const IMAGE_ORIGINAL_URL = "https://image.tmdb.org/t/p/original";
+const APP_VERSION = '1.0.0'; // Updated by publish script
 
 // Detect if running in Electron or Android (Native)
 const isElectron = navigator.userAgent.toLowerCase().includes('electron');
@@ -98,7 +99,19 @@ async function initApp() {
 
     if (isNative) {
         appBadge.classList.remove('hidden');
-        if (isAndroid) appBadge.innerHTML = '<span class="badge-dot"></span> Android App';
+        if (isAndroid) {
+            appBadge.innerHTML = '<span class="badge-dot"></span> Android App';
+
+            // Android Update Logic
+            if (window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.CapacitorUpdater) {
+                try {
+                    window.Capacitor.Plugins.CapacitorUpdater.notifyAppReady();
+                    checkForAndroidUpdates();
+                } catch (e) {
+                    console.error("Updater init error:", e);
+                }
+            }
+        }
     }
 
     await fetchGenres();
@@ -119,6 +132,41 @@ async function initApp() {
     }
 
     setupEventListeners();
+}
+
+async function checkForAndroidUpdates() {
+    try {
+        const response = await fetch('https://vlixy.netlify.app/updates/version.json');
+        const remoteData = await response.json();
+
+        if (compareVersions(remoteData.version, APP_VERSION) > 0) {
+            console.log(`Update available: ${remoteData.version}`);
+            // Download update
+            const update = await window.Capacitor.Plugins.CapacitorUpdater.download({
+                url: remoteData.url,
+                version: remoteData.version
+            });
+
+            if (update) {
+                console.log('Update downloaded, setting...');
+                await window.Capacitor.Plugins.CapacitorUpdater.set(update);
+                // Reload to apply
+                window.location.reload();
+            }
+        }
+    } catch (e) {
+        console.error('Android update check failed:', e);
+    }
+}
+
+function compareVersions(v1, v2) {
+    const parts1 = v1.split('.').map(Number);
+    const parts2 = v2.split('.').map(Number);
+    for (let i = 0; i < 3; i++) {
+        if (parts1[i] > parts2[i]) return 1;
+        if (parts1[i] < parts2[i]) return -1;
+    }
+    return 0;
 }
 
 function setupEventListeners() {
@@ -300,7 +348,7 @@ function renderRecommendationsFeed() {
     recommendationsSection.classList.remove('hidden');
     recommendationsSection.innerHTML = `
         <div class="section-header">
-            <h2>Recommended for You</h2>
+            <h2>You Might Like</h2>
             <a href="#" id="view-all-recs" class="view-more">View More</a>
         </div>
         <div class="media-grid" id="recommendations-grid"></div>
