@@ -1,151 +1,113 @@
-# Vidsrc Viewer
+# Vlix - Advanced Streaming Client
 
-**A complete movie browsing and streaming application.** Discover and watch popular movies and TV shows in a beautiful, popup-free, ad-free environment. This Electron-based app combines content discovery with distraction-free viewing.
+Vlix is a next-generation streaming client built with Electron (Desktop) and Capacitor (Android). It features a premium, Netflix-style interface, an integrated AI concierge, and a robust update system that allows for over-the-air updates without re-downloading the application.
 
-## ✨ Features
+## 🚀 Getting Started
 
-*   **🎬 Integrated Movie Browser**: Browse 10 popular movies and TV shows right from the app
-*   **🚫 Popup Blocking**: Automatically blocks all popup windows and tabs
-*   **🎯 Smart Protocol Switching**: Uses `vidsrc://` in the app for seamless streaming, `https://` in browsers
-*   **🎨 Premium UI**: Beautiful dark theme with glassmorphism effects
-*   **⚡ Ad-Free Experience**: No interruptions when using the desktop app
-*   **🔗 Custom Protocol**: Handles `vidsrc://` links directly from your browser
+### Prerequisites
+- Node.js (v20 recommended)
+- Java JDK 17+ (for Android builds)
+- Android Studio (for Android emulation/building)
 
-## 🎮 Usage
-
-### Launch the App
-
-Simply open **Vidsrc Viewer** from Applications or Spotlight. You'll see a beautiful movie browser with curated content. Click any movie or show to start streaming instantly!
-
-### From the Browser
-
-When you encounter a `vidsrc://` link on the web, it will automatically open in the Vidsrc Viewer app if installed.
-
-### Command Line (Optional)
-
-If you've set up the symlink (see developer instructions), you can also launch URLs directly:
+### Local Development (Electron)
+To run the desktop application locally:
 
 ```bash
-vidsrc https://vidsrc.xyz/embed/movie/tt0133093
-vidsrc vidsrc://vidsrc.xyz/embed/tv/tt1190634
+# Install dependencies
+npm install
+
+# Start the Electron development server
+npm start
 ```
 
-## 📥 Installation
-
-### For End Users (Recommended)
-
-**The easiest way to install** - no terminal required!
-
-1.  **Download** the latest `VidsrcViewer-Installer.dmg` from the releases page
-2.  **Open** the DMG file  
-3.  **Drag** VidsrcViewer to your Applications folder
-4.  **Launch** the app from Applications or Spotlight
-
-That's it! The `vidsrc://` protocol handler and movie browser are ready to use.
-
-### For Developers
-
-#### Prerequisites
-
-*   **Node.js**: You need to have Node.js installed. [Download it here](https://nodejs.org/).
-*   **macOS**: This guide is currently tailored for macOS users.
-
-#### macOS Users (Automated Installation)
-
-**macOS developers** can use the automated installation script:
-
-1.  **Clone the repository**
-    ```bash
-    git clone https://github.com/samrahimi/vidsrc_viewer.git
-    cd vidsrc_viewer
-    ```
-
-2.  **Run the installation script**
-    ```bash
-    ./install_macos.sh
-    ```
-
-That's it! The script will automatically install dependencies, package the application, and register the `vidsrc` command and protocol handler.
-
-#### Manual Installation (All Platforms)
-
-**Windows and Linux developers** should follow these manual steps. Platform-specific packaging configurations will be added in the next release.
-
-1.  **Clone the repository**
-    ```bash
-    git clone https://github.com/samrahimi/vidsrc_viewer.git
-    cd vidsrc_viewer
-    ```
-
-2.  **Install Dependencies**
-    ```bash
-    npm install
-    ```
-
-3.  **Package the Application**
-    This command builds the app and creates a standalone executable in the `dist` folder.
-    ```bash
-    npm run package
-    ```
-
-4.  **Register the Command (The "Magic" Step)**
-    Run this command to allow you to type `vidsrc` in your terminal and to make `vidsrc://` links work.
-    
-    *Note: This assumes you are still in the `vidsrc_viewer` directory.*
-
-    ```bash
-    # Create a symlink to the executable in your path
-    ln -sf "$(pwd)/dist/VidsrcViewer-darwin-x64/VidsrcViewer.app/Contents/MacOS/VidsrcViewer" /usr/local/bin/vidsrc
-    
-    # Open the app once to register the protocol with macOS
-    open dist/VidsrcViewer-darwin-x64/VidsrcViewer.app
-    ```
-
-#### Building the DMG Installer (For Distribution)
-
-To create a DMG installer for end users:
+### Android Development
+To sync changes to the Android project:
 
 ```bash
-npm run build-dmg
+# Sync web assets to the native Android project
+npm run build:android
+
+# Open in Android Studio to run on emulator/device
+npx cap open android
 ```
 
-This will:
-1. Package the application
-2. Create a DMG file at `dist/VidsrcViewer-Installer.dmg`
-3. Include the classic "drag to Applications" interface
+---
 
-The DMG file can be distributed to users who want the GUI installation experience.
+## 🏗️ Architecture & Features
 
-## Usage
+### 🛡️ "Sketchy" Stream Handling & Popup Suppression
+Vlix aggregates streams from various third-party providers (like vidsrc). These sources often contain aggressive popups and blind redirects. We handle this natively to ensure a clean user experience:
 
-### From the Command Line
-You can open any URL (http or vidsrc scheme) directly:
+*   **Electron (`main.js`)**: We use `win.webContents.setWindowOpenHandler` to intercept all new window creation attempts. We return `{ action: 'deny' }` for everything, effectively killing all popups before they open.
+*   **Android (`MainActivity.java`)**: We override `WebChromeClient` and `BridgeWebViewClient`.
+    *   `onCreateWindow`: Returns `false` to block new windows.
+    *   `shouldOverrideUrlLoading`: Intercepts navigation. We allow navigation within `iframes` (so the video player works) and local app assets, but block all top-level navigations to external URLs, preventing "frame-busting" ads.
+
+### 🤖 AI Chat Agent & Memory System
+The integrated chatbot (`browser/chat.js`) is context-aware and maintains long-term memory of user interactions.
+
+1.  **Context Injection**: The main app (`browser/app.js`) monitors user activity (what they are watching, browsing, etc.) and injects this context into the chat iframe via `postMessage`.
+2.  **Context Compression**: To keep token usage low and performance high, conversation history is periodically sent to an LLM to be summarized into a concise narrative.
+3.  **Long-Term Memory**: These summaries are stored in `localStorage` (`browser/longTermMemory.js`). On app launch, these memories are retrieved and injected into the agent's system prompt, giving it "memory" of past conversations and user preferences.
+
+### 🌊 User Onboarding Flow
+When a user first launches Vlix, they are guided through a 5-step personalization flow (`browser/onboarding.html`):
+1.  **Welcome**
+2.  **Genre Selection**
+3.  **Actor Selection**
+4.  **Movie Selection**
+5.  **TV Show Selection**
+
+**Data Generation**:
+Once completed, the app uses an LLM to generate a "User Story" based on these selections, and then hallucinates a list of 49 recommended titles. These titles are then "enriched" by verifying them against the TMDB API to get real metadata (posters, IDs) before being saved to the user's profile.
+
+**Critique & Improvements**:
+*   **Current Weakness**: The flow relies on client-side API keys and performs heavy LLM/API operations on the client, which can be slow or fail if the user closes the app too quickly.
+*   **Inefficiency**: The "enrichment" process fetches data sequentially, which is slow.
+*   **Improvement**: Move the recommendation generation to a serverless function. Cache the "User Story" generation. Use `Promise.all` with rate limiting for enrichment to speed up the process.
+
+---
+
+## 🔄 Build & Update Workflow
+
+Vlix uses a dual-update strategy: **Native Installers** for binary changes and **Hot Updates** for UI/Logic changes.
+
+### 1. GitHub Build Workflow
+The CI/CD pipeline is defined in `.github/workflows/build.yml`.
+*   **Triggers**: Push to `main` or `master`.
+*   **Jobs**: Builds for macOS (Intel & Apple Silicon), Ubuntu, Windows, and Android.
+*   **Artifacts**: Uploads installers (DMG, EXE, AppImage, APK) as GitHub Actions artifacts.
+
+### 2. Updating the Public Website (`vlix_website`)
+To update the download links on the public website with the latest build artifacts:
 
 ```bash
-vidsrc https://vidsrc.xyz/embed/movie/tt1234567
-# OR
-vidsrc vidsrc://vidsrc.xyz/embed/movie/tt1234567
+# Downloads artifacts from the latest GitHub Action run, renames them with the build number,
+# moves them to vlix_website/installers, and updates version.json.
+python3 scripts/download_artifacts.py
 ```
 
-### From the Browser
-Simply click on any `vidsrc://` link, and it will open automatically in the Vidsrc Viewer.
+### 3. Deploying the Website
+The website is hosted on Netlify. To deploy the updated website (after running the script above):
 
-## Development
+```bash
+# Deploy to production
+netlify deploy --prod --dir=vlix_website
+```
 
-If you want to modify the code:
+### 4. Publishing Hot Updates
+For changes to the web app (HTML/JS/CSS) that *don't* require native code changes, we can push an update directly to clients without them needing to re-download the installer.
 
-1.  **Run in Development Mode**
-    ```bash
-    npm start
-    ```
-    This will launch the app using the source files directly.
+```bash
+# 1. Updates APP_VERSION in browser/app.js
+# 2. Zips the 'browser/' directory
+# 3. Creates vlix_website/updates/update.zip and version.json
+node scripts/publish_update.js
 
-2.  **Re-packaging**
-    After making changes, run `npm run package` again to update the standalone app.
+# Then deploy the website again to make the update live
+netlify deploy --prod --dir=vlix_website
+```
 
-## Troubleshooting
-
-*   **"App is damaged"**: If macOS complains the app is damaged, you may need to remove the quarantine attribute:
-    ```bash
-    xattr -cr dist/VidsrcViewer-darwin-x64/VidsrcViewer.app
-    ```
+**Client Handling**:
+*   **Electron**: Checks `version.json` on startup. If a new version is found, it downloads the zip, extracts it to `userData/updates`, and loads that version instead of the bundled one.
+*   **Android**: Uses the Capacitor Updater plugin to perform the same check and update process, swapping the web assets on the fly.

@@ -2,7 +2,7 @@ const API_KEY = "829a43a98259bc44cae297489c7e3bba";
 const BASE_URL = "https://api.themoviedb.org/3";
 const IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
 const IMAGE_ORIGINAL_URL = "https://image.tmdb.org/t/p/original";
-const APP_VERSION = '1.0.0'; // Updated by publish script
+const APP_VERSION = '1.0.3'; // Updated by publish script
 
 // Detect if running in Electron or Android (Native)
 const isElectron = navigator.userAgent.toLowerCase().includes('electron');

@@ -339,14 +339,6 @@ function installUpdate(zipPath, updatesDir, win) {
         zip.extractAllTo(extractPath, true);
         console.log('Update installed to:', extractPath);
 
-        // Notify user or just reload on next start
-        // For now, let's ask the user if they want to restart
-        win.webContents.executeJavaScript(`
-            if(confirm("A new update has been downloaded. Restart now to apply?")) {
-                window.location.reload(); 
-            }
-        `);
-
     } catch (e) {
         console.error('Error installing update:', e);
     }
