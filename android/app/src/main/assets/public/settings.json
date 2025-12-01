@@ -1,4 +1,13 @@
 {
     "playerUrlTemplateMovie": "https://vidsrc.cc/v2/embed/movie/{tmdbId}?autoplay=true",
     "playerUrlTemplateTv": "https://vidsrc.cc/v2/embed/tv/{tmdbId}?autoplay=true",
+    "dailyTokenLimit": 500000,
+    "openaiApiKey": "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",
+    "openaiChatUrl": "https://openrouter.ai/api/v1/chat/completions",
+    "agentModelId": "x-ai/grok-4-fast",
+    "tmdbApiKey": "829a43a98259bc44cae297489c7e3bba",
+    "tmdbBaseUrl": "https://api.themoviedb.org/3",
+    "tmdbImageBaseUrl": "https://image.tmdb.org/t/p/w500",
+    "tmdbImageOriginalUrl": "https://image.tmdb.org/t/p/original",
+    "summarizationModel": "x-ai/grok-4-fast"
 }

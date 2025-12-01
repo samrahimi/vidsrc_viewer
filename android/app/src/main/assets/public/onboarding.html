@@ -721,6 +721,8 @@ Example:
                         if (data.results && data.results.length > 0) {
                             // Take the first result
                             const match = data.results[0];
+                            // Explicitly set media_type from the LLM generation if missing or just to be safe
+                            match.media_type = item.type;
                             enrichedList.push(match);
                         }
                     } catch (e) {

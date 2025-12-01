@@ -262,7 +262,7 @@
             width: 150px;
             margin: 0 auto;
         }
-        }
+
 
         /* Wake Overlay */
         #wake-overlay {
@@ -597,10 +597,13 @@
                 favorites.push({
                     id: tmdbId,
                     type,
+                    media_type: type, // Explicitly save media_type
                     title: nowWatching.title,
                     poster_path: nowWatching.poster_path,
                     year: nowWatching.year,
                     rating: nowWatching.rating,
+                    vote_average: nowWatching.rating, // Save raw if possible, but we only have formatted here usually
+                    genres: nowWatching.genres, // Save genres array
                     timestamp: Date.now()
                 });
             } else {
