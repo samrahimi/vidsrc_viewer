@@ -21,7 +21,9 @@ const searchGrid = document.getElementById('search-grid');
 const closeSearchBtn = document.getElementById('close-search'); // This is the one in the section header, can keep or remove
 const searchClearBtn = document.getElementById('search-clear'); // The new X in the input
 const appBadge = document.getElementById('app-badge');
-const mainContentSections = document.querySelectorAll('.media-section:not(#search-results-section):not(#category-view-section), #hero-section, #category-feeds-container'); // Select hero and trending sections
+function getMainContentSections() {
+    return document.querySelectorAll('.media-section:not(#search-results-section):not(#category-view-section), #hero-section, #category-feeds-container');
+}
 
 // Category Elements
 const categoryFeedsContainer = document.getElementById('category-feeds-container');
@@ -261,7 +263,7 @@ async function fetchTrending(type, timeWindow) {
 
 async function handleSearch(query) {
     // Hide main content
-    mainContentSections.forEach(el => el.classList.add('hidden'));
+    getMainContentSections().forEach(el => el.classList.add('hidden'));
 
     showLoading(searchGrid);
     searchResultsSection.classList.remove('hidden');
@@ -285,7 +287,9 @@ function closeSearch() {
     searchGrid.innerHTML = '';
 
     // Show main content again
-    mainContentSections.forEach(el => el.classList.remove('hidden'));
+    // Show main content again
+    getMainContentSections().forEach(el => el.classList.remove('hidden'));
+    updateForYouVisibility();
 }
 
 // --- Category Logic ---
@@ -368,7 +372,7 @@ let staticCategoryPage = 1;
 
 function openStaticCategoryView(title, items) {
     // Hide main content
-    mainContentSections.forEach(el => el.classList.add('hidden'));
+    getMainContentSections().forEach(el => el.classList.add('hidden'));
     if (recommendationsSection) recommendationsSection.classList.add('hidden');
 
     // Reset state
@@ -419,7 +423,7 @@ function handleStaticInfiniteScroll() {
 
 async function openCategoryView(genreId, genreName) {
     // Hide main content
-    mainContentSections.forEach(el => el.classList.add('hidden'));
+    getMainContentSections().forEach(el => el.classList.add('hidden'));
 
     // Reset state
     currentCategoryId = genreId;
@@ -475,12 +479,9 @@ async function loadMoreCategory() {
 function closeCategoryView() {
     categoryViewSection.classList.add('hidden');
     categoryGrid.innerHTML = '';
-    mainContentSections.forEach(el => el.classList.remove('hidden'));
-    if (recommendationsSection && !localStorage.getItem('onboarding_completed') === false) {
-        // Only show if onboarding is complete and we have recs
-        const recs = localStorage.getItem('vidsrc_recommendations');
-        if (recs) recommendationsSection.classList.remove('hidden');
-    }
+    getMainContentSections().forEach(el => el.classList.remove('hidden'));
+    updateForYouVisibility();
+    // Recommendations are now handled by getMainContentSections if they are in the DOM
     window.removeEventListener('scroll', handleInfiniteScroll);
     window.removeEventListener('scroll', handleStaticInfiniteScroll);
 }
@@ -525,56 +526,109 @@ function updateHero(item) {
     `;
 }
 
+function safeExtractItemData(item, forcedType) {
+    try {
+        const id = item.id;
+        const type = forcedType || item.media_type || item.type || 'movie';
+        const title = item.title || item.name || 'Unknown Title';
+
+        let year = 'N/A';
+        const rawDate = item.release_date || item.first_air_date || item.year;
+        if (rawDate) {
+            year = String(rawDate).split('-')[0];
+        }
+
+        let rating = 'N/A';
+        // Handle vote_average (number) or rating (string/number)
+        const rawRating = item.vote_average !== undefined ? item.vote_average : item.rating;
+        if (rawRating !== undefined && rawRating !== null && rawRating !== 'N/A') {
+            const num = Number(rawRating);
+            if (!isNaN(num)) {
+                rating = num.toFixed(1);
+            } else {
+                rating = String(rawRating); // Fallback to string if it's not a valid number but exists
+            }
+        }
+
+        const posterUrl = item.poster_path ? `${IMAGE_BASE_URL}${item.poster_path}` : '';
+
+        // Safe genre extraction
+        let genresStr = '';
+        if (item.genres) {
+            if (Array.isArray(item.genres) && item.genres.length > 0) {
+                if (typeof item.genres[0] === 'string') {
+                    genresStr = item.genres.slice(0, 2).join(', ');
+                } else if (typeof item.genres[0] === 'object' && item.genres[0].name) {
+                    genresStr = item.genres.slice(0, 2).map(g => g.name).join(', ');
+                }
+            }
+        } else if (item.genre_ids && Array.isArray(item.genre_ids)) {
+            genresStr = item.genre_ids.slice(0, 2).map(id => genres[id]).filter(Boolean).join(', ');
+        }
+
+        return { id, type, title, year, rating, posterUrl, genresStr };
+    } catch (e) {
+        console.error("Error extracting item data", e, item);
+        return null;
+    }
+}
+
 function renderGrid(items, container, forcedType, shouldAppend = false) {
     if (!shouldAppend) {
         container.innerHTML = '';
     }
 
+    if (!items || !Array.isArray(items)) {
+        console.error("renderGrid called with invalid items:", items);
+        return;
+    }
+
     items.forEach(item => {
-        if (!item.poster_path) return; // Skip items without posters
+        try {
+            if (!item) return;
 
-        const type = forcedType || item.media_type || 'movie';
-        const title = item.title || item.name;
-        const year = (item.release_date || item.first_air_date || '').split('-')[0];
-        const rating = item.vote_average ? item.vote_average.toFixed(1) : 'N/A';
-        const posterUrl = `${IMAGE_BASE_URL}${item.poster_path}`;
+            const data = safeExtractItemData(item, forcedType);
+            if (!data || !data.posterUrl) return; // Skip invalid or missing poster
 
-        // Get top 2 genres
-        const itemGenres = (item.genre_ids || []).slice(0, 2).map(id => genres[id]).filter(Boolean).join(', ');
+            const { id, type, title, year, rating, posterUrl, genresStr } = data;
 
-        const card = document.createElement('div');
-        card.className = 'media-card';
-        card.onclick = () => playContent(item.id, type);
+            const card = document.createElement('div');
+            card.className = 'media-card';
+            card.onclick = () => playContent(id, type);
 
-        card.innerHTML = `
-            <img src="${posterUrl}" alt="${title}" class="card-poster" loading="lazy">
-            <div class="card-actions">
-                <button class="btn-icon-small fav-btn ${isFavorite(item.id) ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavorite('${item.id}', '${type}', '${encodeURIComponent(title)}', '${item.poster_path}', '${year}', '${rating}')">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="${isFavorite(item.id) ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-                    </svg>
-                </button>
-                <button class="btn-icon-small info-btn" onclick="event.stopPropagation(); openInfoModal('${item.id}', '${type}')">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                </button>
-            </div>
-            <div class="card-overlay">
-                <h3 class="card-title">${title}</h3>
-                <div class="card-meta">
-                    <span>${year}</span>
-                    <span class="rating">⭐ ${rating}</span>
+            card.innerHTML = `
+                <img src="${posterUrl}" alt="${title}" class="card-poster" loading="lazy">
+                <div class="card-actions">
+                    <button class="btn-icon-small fav-btn ${isFavorite(id) ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavorite('${id}', '${type}', '${encodeURIComponent(title)}', '${item.poster_path}', '${year}', '${rating}')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="${isFavorite(id) ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2-2z"></path>
+                        </svg>
+                    </button>
+                    <button class="btn-icon-small info-btn" onclick="event.stopPropagation(); openInfoModal('${id}', '${type}')">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    </button>
                 </div>
-                <div class="card-details">
-                    <span class="card-genres">${itemGenres}</span>
-                    <span class="card-runtime" id="runtime-${item.id}">...</span>
+                <div class="card-overlay">
+                    <h3 class="card-title">${title}</h3>
+                    <div class="card-meta">
+                        <span>${year}</span>
+                        <span class="rating">⭐ ${rating}</span>
+                    </div>
+                    <div class="card-details">
+                        <span class="card-genres">${genresStr}</span>
+                        <span class="card-runtime" id="runtime-${id}">...</span>
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
 
-        container.appendChild(card);
+            container.appendChild(card);
 
-        // Fetch runtime asynchronously
-        fetchRuntime(item.id, type);
+            // Fetch runtime asynchronously
+            fetchRuntime(id, type);
+        } catch (err) {
+            console.error("Error rendering item:", item, err);
+            // Continue to next item
+        }
     });
 }
 
@@ -780,6 +834,7 @@ async function addToHistory(id, type) {
     const poster_path = item.poster_path;
     const year = (item.release_date || item.first_air_date || '').split('-')[0];
     const rating = item.vote_average ? item.vote_average.toFixed(1) : 'N/A';
+    const genresList = item.genres || (item.genre_ids ? item.genre_ids.map(id => ({ id, name: genres[id] })) : []);
 
     // Remove if exists (to move to top)
     const index = history.findIndex(h => h.id == id);
@@ -787,7 +842,19 @@ async function addToHistory(id, type) {
         history.splice(index, 1);
     }
 
-    history.unshift({ id, type, title, poster_path, year, rating, timestamp: Date.now() });
+    // Save with media_type explicitly
+    history.unshift({
+        id,
+        media_type: type, // Important: save as media_type for consistency
+        type, // Keep for backward compat if needed, but prefer media_type
+        title,
+        poster_path,
+        year,
+        rating,
+        vote_average: item.vote_average, // Save raw value too
+        genres: genresList,
+        timestamp: Date.now()
+    });
 
     // Limit history to 50 items
     if (history.length > 50) {

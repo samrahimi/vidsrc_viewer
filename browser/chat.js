@@ -136,6 +136,54 @@ async function fetchGenres() {
 }
 fetchGenres();
 
+let settings = {};
+async function fetchSettings() {
+    try {
+        const response = await fetch('settings.json');
+        settings = await response.json();
+    } catch (error) {
+        console.error('Error fetching settings:', error);
+    }
+}
+fetchSettings();
+
+function checkRateLimit() {
+    const limit = settings.dailyTokenLimit || 500000;
+    const usageData = JSON.parse(localStorage.getItem('chatTokenUsage') || '{}');
+    const now = Date.now();
+
+    // Reset if more than 24 hours (86400000 ms)
+    if (!usageData.timestamp || now - usageData.timestamp > 86400000) {
+        usageData.timestamp = now;
+        usageData.tokens = 0;
+        localStorage.setItem('chatTokenUsage', JSON.stringify(usageData));
+        return true;
+    }
+
+    if (usageData.tokens >= limit) {
+        return false;
+    }
+
+    return true;
+}
+
+function updateTokenUsage(inputChars, outputChars) {
+    const usageData = JSON.parse(localStorage.getItem('chatTokenUsage') || '{}');
+    const now = Date.now();
+
+    // Initialize if needed
+    if (!usageData.timestamp || now - usageData.timestamp > 86400000) {
+        usageData.timestamp = now;
+        usageData.tokens = 0;
+    }
+
+    const estimatedTokens = (inputChars + outputChars) / 4;
+    usageData.tokens = (usageData.tokens || 0) + estimatedTokens;
+
+    localStorage.setItem('chatTokenUsage', JSON.stringify(usageData));
+    console.log(`Token usage updated: +${estimatedTokens.toFixed(2)} tokens. Total: ${usageData.tokens.toFixed(2)} / ${settings.dailyTokenLimit}`);
+}
+
 
 
 // Add context to the system prompt. This is used to compress the conversation history, and to personalize interactions
@@ -181,6 +229,12 @@ const compressConversation = async () => {
     });
 
     const data = await response.json();
+
+    // Track usage
+    updateTokenUsage(JSON.stringify({
+        model: SUMMARIZATION_MODEL,
+        messages: payload
+    }).length, JSON.stringify(data).length);
 
     if (data.error) {
         throw new Error(data.error.message);
@@ -254,6 +308,12 @@ async function sendMessage() {
     const text = chatInput.value.trim();
     if (!text) return;
 
+    // Check rate limit
+    if (!checkRateLimit()) {
+        appendMessage('system', "Daily usage limit reached. Please try again tomorrow.");
+        return;
+    }
+
     // Check max turns
     if (turnCount >= MAX_TURNS_PER_CONVERSATION) {
         return; // Should be disabled, but just in case
@@ -299,6 +359,14 @@ async function processChat() {
     });
 
     const data = await response.json();
+
+    // Track usage
+    updateTokenUsage(JSON.stringify({
+        model: AGENT_MODEL_ID,
+        messages: conversationHistory,
+        tools: tools,
+        tool_choice: "auto"
+    }).length, JSON.stringify(data).length);
 
     if (data.error) {
         throw new Error(data.error.message);

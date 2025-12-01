@@ -1,6 +1,6 @@
 {
     "name": "vlix",
-    "version": "1.0.5",
+    "version": "1.1.0",
     "main": "main.js",
     "scripts": {
         "build:android": "npx cap sync android",
