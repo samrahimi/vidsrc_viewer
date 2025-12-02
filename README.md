@@ -107,7 +107,15 @@ node scripts/publish_update.js
 # Then deploy the website again to make the update live
 netlify deploy --prod --dir=vlix_website
 ```
+**Note**: This is not currently working in the Android client. It works reasonably well in Electron.
+
 
 **Client Handling**:
 *   **Electron**: Checks `version.json` on startup. If a new version is found, it downloads the zip, extracts it to `userData/updates`, and loads that version instead of the bundled one.
 *   **Android**: Uses the Capacitor Updater plugin to perform the same check and update process, swapping the web assets on the fly.
+
+
+### 5. Remote Config Endpoint
+Default settings are loaded from `browser/settings.json` in the client. Current settings are loaded from `https://vlixy.netlify.app/config/settings.json` and take precedence over the default settings, if different. 
+
+When you add a new setting, PLEASE update settings.json in both locations. Note: to update the remote settings, edit settings.json in the vlix_website/config directory and then run `netlify deploy --prod .` from vlix_website

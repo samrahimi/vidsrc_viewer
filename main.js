@@ -1,7 +1,11 @@
 const { app, BrowserWindow, ipcMain, session } = require('electron');
 const path = require('path');
+const activateDebuggerer = require('./net/debuggerer');
 
 let startupUrl;
+
+const LOG_ALL_REQUESTS = false
+const DEBUGGERER_ENABLED = false
 
 function createWindow() {
     const win = new BrowserWindow({
@@ -68,16 +72,21 @@ if (!gotTheLock) {
     });
 
     app.whenReady().then(() => {
-        // Log all network requests
-        session.defaultSession.webRequest.onResponseStarted((details) => {
-            const { url, method, responseHeaders } = details;
-            // Content-Type header keys can be case-insensitive, but Electron usually normalizes them or provides them as is.
-            // Let's try to find it case-insensitively just in case.
-            const contentTypeKey = Object.keys(responseHeaders).find(key => key.toLowerCase() === 'content-type');
-            const contentType = contentTypeKey ? responseHeaders[contentTypeKey][0] : 'unknown';
+        // 1. Super adblocker: only works with vidsrc-embed.ru player, not .cc
+        if (DEBUGGERER_ENABLED) activateDebuggerer();
 
-            console.log(`[Network] ${method} ${url} (${contentType})`);
-        });
+        // 2. Log all network requests if enabled
+        if (LOG_ALL_REQUESTS) {
+            session.defaultSession.webRequest.onResponseStarted((details) => {
+                const { url, method, responseHeaders } = details;
+                // Content-Type header keys can be case-insensitive, but Electron usually normalizes them or provides them as is.
+                // Let's try to find it case-insensitively just in case.
+                const contentTypeKey = Object.keys(responseHeaders).find(key => key.toLowerCase() === 'content-type');
+                const contentType = contentTypeKey ? responseHeaders[contentTypeKey][0] : 'unknown';
+
+                console.log(`[Network] ${method} ${url} (${contentType})`);
+            });
+        }
 
         createWindow();
 
@@ -142,21 +151,7 @@ function createMenu(win) {
         {
             label: 'File',
             submenu: [
-                {
-                    label: 'Clear History',
-                    click: () => win.webContents.send('menu-action', 'clear-history')
-                },
-                {
-                    label: 'Clear Favorites',
-                    click: () => win.webContents.send('menu-action', 'clear-favorites')
-                },
-                {
-                    label: 'My Activity',
-                    click: () => win.webContents.send('menu-action', 'export-activity')
-                },
                 isMac ? { role: 'close' } : { role: 'quit' },
-                { type: 'separator' },
-                { role: 'quit' }
             ]
         },
         // Edit Menu (Standard)

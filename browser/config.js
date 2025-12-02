@@ -1,20 +1,36 @@
-window.AppConfig = {
-    playerUrlTemplateMovie: "https://vidsrc.cc/v2/embed/movie/{tmdbId}?autoplay=true",
-    playerUrlTemplateTv: "https://vidsrc.cc/v2/embed/tv/{tmdbId}?autoplay=true",
-};
+window.AppConfig = {};
 
 window.loadConfig = async function () {
+    let localConfig = {};
+    let remoteConfig = {};
+
+    // 1. Load local settings
     try {
-        const response = await fetch('settings.json');
-        if (response.ok) {
-            const config = await response.json();
-            window.AppConfig = { ...window.AppConfig, ...config };
-            console.log('Config loaded:', window.AppConfig);
+        const localResponse = await fetch('settings.json');
+        if (localResponse.ok) {
+            localConfig = await localResponse.json();
         } else {
-            console.warn('Failed to load settings.json, using defaults.');
+            console.warn('Failed to load local settings.json');
         }
     } catch (e) {
-        console.warn('Error loading settings.json:', e);
+        console.warn('Error loading local settings.json:', e);
     }
+
+    // 2. Load remote settings
+    try {
+        const remoteResponse = await fetch('https://vlixy.netlify.app/config/settings.json');
+        if (remoteResponse.ok) {
+            remoteConfig = await remoteResponse.json();
+        } else {
+            console.warn('Failed to load remote settings, using local only.');
+        }
+    } catch (e) {
+        console.warn('Error loading remote settings:', e);
+    }
+
+    // 3. Merge: Remote overrides Local
+    window.AppConfig = { ...localConfig, ...remoteConfig };
+    console.log('Config loaded:', window.AppConfig);
+
     return window.AppConfig;
 };

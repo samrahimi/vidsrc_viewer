@@ -1,10 +1,3 @@
-const OPENAI_API_KEY = "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";
-const OPENAI_CHAT_URL = "https://openrouter.ai/api/v1/chat/completions";
-const AGENT_MODEL_ID = "x-ai/grok-4-fast";
-
-const TMDB_API_KEY = "829a43a98259bc44cae297489c7e3bba"; // Copied from app.js
-const BASE_URL = "https://api.themoviedb.org/3";
-const SUMMARIZATION_MODEL = "x-ai/grok-4-fast"
 const SUMMARIZATION_PROMPT = `Based on the following dialogue between a user and an AI agent, please summarize the interaction in 100 words or less. For example:
 
 EXAMPLE INPUT (may be in JSON format or text)
@@ -122,19 +115,20 @@ function playContent(tmdbId, type) {
 let genres = {};
 async function fetchGenres() {
     try {
-        const response = await fetch(`${BASE_URL}/genre/movie/list?api_key=${TMDB_API_KEY}`);
+        const response = await fetch(`${settings.tmdbBaseUrl}/genre/movie/list?api_key=${settings.tmdbApiKey}`);
         const data = await response.json();
         data.genres.forEach(g => genres[g.id] = g.name);
 
         // Also fetch TV genres
-        const tvResponse = await fetch(`${BASE_URL}/genre/tv/list?api_key=${TMDB_API_KEY}`);
+        const tvResponse = await fetch(`${settings.tmdbBaseUrl}/genre/tv/list?api_key=${settings.tmdbApiKey}`);
         const tvData = await tvResponse.json();
         tvData.genres.forEach(g => genres[g.id] = g.name);
     } catch (error) {
         console.error('Error fetching genres:', error);
     }
 }
-fetchGenres();
+// Fetch genres after settings are loaded
+fetchSettings().then(() => fetchGenres());
 
 let settings = {};
 async function fetchSettings() {
@@ -216,14 +210,14 @@ const compressConversation = async () => {
     }
     ]
 
-    const response = await fetch(OPENAI_CHAT_URL, {
+    const response = await fetch(settings.openaiChatUrl, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${OPENAI_API_KEY}`
+            "Authorization": `Bearer ${settings.openaiApiKey}`
         },
         body: JSON.stringify({
-            model: SUMMARIZATION_MODEL, //using gpt-5-mini because openai gives me 10M / daily free tokens... not an endorsement of this model
+            model: settings.summarizationModel,
             messages: payload
         })
     });
@@ -232,7 +226,7 @@ const compressConversation = async () => {
 
     // Track usage
     updateTokenUsage(JSON.stringify({
-        model: SUMMARIZATION_MODEL,
+        model: settings.summarizationModel,
         messages: payload
     }).length, JSON.stringify(data).length);
 
@@ -344,14 +338,14 @@ async function sendMessage() {
 }
 
 async function processChat() {
-    const response = await fetch(OPENAI_CHAT_URL, {
+    const response = await fetch(settings.openaiChatUrl, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${OPENAI_API_KEY}`
+            "Authorization": `Bearer ${settings.openaiApiKey}`
         },
         body: JSON.stringify({
-            model: AGENT_MODEL_ID, // Upgraded to 4o for better instruction following with HTML
+            model: settings.agentModelId,
             messages: conversationHistory,
             tools: tools,
             tool_choice: "auto"
@@ -362,7 +356,7 @@ async function processChat() {
 
     // Track usage
     updateTokenUsage(JSON.stringify({
-        model: AGENT_MODEL_ID,
+        model: settings.agentModelId,
         messages: conversationHistory,
         tools: tools,
         tool_choice: "auto"
@@ -430,7 +424,7 @@ async function processChat() {
 async function searchContent(query, type = 'movie') {
     try {
         // 1. Search TMDB
-        const searchRes = await fetch(`${BASE_URL}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`);
+        const searchRes = await fetch(`${settings.tmdbBaseUrl}/search/multi?api_key=${settings.tmdbApiKey}&query=${encodeURIComponent(query)}`);
         const searchData = await searchRes.json();
 
         // Filter for movie or tv

@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="config.js"></script>
     <style>
         :root {
             --primary-color: #e50914;
@@ -332,13 +333,13 @@
             <div id="step-indicator">Step 1 of 5</div>
             <button id="next-btn" class="btn btn-primary">Next</button>
         </div>
+        <script src="config.js"></script>
         <script src="longTermMemory.js"></script>
 
         <script>
             // Configuration
-            const TMDB_API_KEY = "829a43a98259bc44cae297489c7e3bba";
-            const BASE_URL = "https://api.themoviedb.org/3";
-            const IMG_BASE_URL = "https://image.tmdb.org/t/p/w342";
+            const TMDB_API_KEY = window.AppConfig.tmdbApiKey;
+            const BASE_URL = window.AppConfig.tmdbBaseUrl;
 
             // State
             let currentStep = 1;
@@ -390,7 +391,7 @@
                     card.onclick = () => toggleSelection('actors', actor, card);
 
                     const img = document.createElement('img');
-                    img.src = actor.profile_path ? `${IMG_BASE_URL}${actor.profile_path}` : 'https://via.placeholder.com/342x513?text=No+Image';
+                    img.src = actor.profile_path ? `${window.AppConfig.tmdbImageBaseUrl}${actor.profile_path}` : 'https://via.placeholder.com/342x513?text=No+Image';
 
                     const content = document.createElement('div');
                     content.className = 'card-content';
@@ -416,7 +417,7 @@
                     card.onclick = () => toggleSelection(type, item, card);
 
                     const img = document.createElement('img');
-                    img.src = item.poster_path ? `${IMG_BASE_URL}${item.poster_path}` : 'https://via.placeholder.com/342x513?text=No+Image';
+                    img.src = item.poster_path ? `${window.AppConfig.tmdbImageBaseUrl}${item.poster_path}` : 'https://via.placeholder.com/342x513?text=No+Image';
 
                     const content = document.createElement('div');
                     content.className = 'card-content';
@@ -516,6 +517,8 @@
             }
 
             async function init() {
+                await window.loadConfig();
+
                 try {
                     const data = await fetchOnboardingData();
 
@@ -714,7 +717,7 @@ Example:
 
                 for (const item of list) {
                     try {
-                        const searchUrl = `${BASE_URL}/search/${item.type}?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(item.title)}&year=${item.year}`;
+                        const searchUrl = `${window.AppConfig.tmdbBaseUrl}/search/${item.type}?api_key=${window.AppConfig.tmdbApiKey}&query=${encodeURIComponent(item.title)}&year=${item.year}`;
                         const res = await fetch(searchUrl);
                         const data = await res.json();
 
