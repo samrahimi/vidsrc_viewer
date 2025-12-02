@@ -116,6 +116,6 @@ netlify deploy --prod --dir=vlix_website
 
 
 ### 5. Remote Config Endpoint
-Default settings are loaded from `browser/settings.json` in the client. Current settings are loaded from `https://vlixy.netlify.app/config/settings.json` and take precedence over the default settings, if different. 
+Default settings are loaded from `browser/settings.json` in the client. Current settings are loaded from `https://vlix.ai/config/settings.json` and take precedence over the default settings, if different. 
 
 When you add a new setting, PLEASE update settings.json in both locations. Note: to update the remote settings, edit settings.json in the vlix_website/config directory and then run `netlify deploy --prod .` from vlix_website

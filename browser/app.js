@@ -134,7 +134,7 @@ async function initApp() {
 
 async function checkForAndroidUpdates() {
     try {
-        const response = await fetch('https://vlixy.netlify.app/updates/version.json');
+        const response = await fetch('https://vlix.ai/updates/version.json');
         const remoteData = await response.json();
 
         if (compareVersions(remoteData.version, APP_VERSION) > 0) {

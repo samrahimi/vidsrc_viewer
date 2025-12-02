@@ -8,3 +8,4 @@ out/
 *.pyc
 installers/
 .venv
+vlix_website/updates

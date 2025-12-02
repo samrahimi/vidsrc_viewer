@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Unknown Dev - Services</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .hero-bg {
+            background-image: linear-gradient(to bottom, rgba(17, 24, 39, 0.9), rgba(17, 24, 39, 1)), url('hero_background.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 text-white min-h-screen flex flex-col font-sans">
+
+    <!-- Navigation -->
+    <nav class="container mx-auto px-6 py-4 flex justify-between items-center z-10">
+        <div class="flex items-center space-x-2">
+            <a href="index.html" class="flex items-center space-x-2">
+                <img src="logo.png" alt="Vlix Logo" class="h-8 w-8">
+                <span
+                    class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">Vlix</span>
+            </a>
+        </div>
+        <div class="hidden md:flex space-x-8">
+            <a href="index.html" class="text-gray-400 hover:text-purple-400 transition">Download</a>
+            <a href="features.html" class="text-gray-400 hover:text-purple-400 transition">Features</a>
+            <a href="services.html" class="text-white font-semibold hover:text-purple-400 transition">The Unknown
+                Dev</a>
+            <a href="help.html" class="text-gray-400 hover:text-purple-400 transition">Help & FAQ</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="hero-bg relative pt-20 pb-32">
+        <div class="absolute inset-0 bg-black/50"></div>
+        <div class="container mx-auto px-6 relative z-10 text-center">
+            <h1 class="text-5xl md:text-7xl font-bold mb-6 tracking-tight">
+                The <span
+                    class="text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-pink-500">Unknown</span>
+                Dev
+            </h1>
+            <p class="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+                Privacy. Anonymity. Autonomy.
+            </p>
+            <p class="mt-6 text-gray-400 max-w-2xl mx-auto">
+                I deliver solutions that ensure your products, platforms, and ecosystems offer peace of mind to those
+                whose trust you depend on.
+            </p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 -mt-20 relative z-20 pb-20">
+
+        <!-- Ideal Projects Section -->
+        <section class="mb-20">
+            <div class="glass rounded-3xl p-10 md:p-12 shadow-2xl">
+                <h2 class="text-3xl font-bold mb-8 text-center">Ideal Projects</h2>
+                <p class="text-gray-400 text-center mb-12 max-w-3xl mx-auto">
+                    I am a perfect fit for projects that require a high degree of technical competence, security, and a
+                    disregard for the status quo.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Project Type 1 -->
+                    <div class="bg-gray-800/50 p-6 rounded-xl hover:bg-gray-800 transition border border-gray-700">
+                        <div class="text-purple-500 text-3xl mb-4"><i class="fas fa-user-secret"></i></div>
+                        <h3 class="text-xl font-bold mb-3">Sovereign Tech</h3>
+                        <p class="text-gray-400 text-sm">
+                            Encrypted communication platforms, censorship-resistant social networks, and tools that
+                            empower individuals against surveillance.
+                        </p>
+                    </div>
+
+                    <!-- Project Type 2 -->
+                    <div class="bg-gray-800/50 p-6 rounded-xl hover:bg-gray-800 transition border border-gray-700">
+                        <div class="text-pink-500 text-3xl mb-4"><i class="fas fa-network-wired"></i></div>
+                        <h3 class="text-xl font-bold mb-3">Decentralized Systems</h3>
+                        <p class="text-gray-400 text-sm">
+                            P2P applications, IPFS/BitTorrent integrations, and self-hosted infrastructure that removes
+                            reliance on Big Tech.
+                        </p>
+                    </div>
+
+                    <!-- Project Type 3 -->
+                    <div class="bg-gray-800/50 p-6 rounded-xl hover:bg-gray-800 transition border border-gray-700">
+                        <div class="text-blue-500 text-3xl mb-4"><i class="fas fa-robot"></i></div>
+                        <h3 class="text-xl font-bold mb-3">Autonomous Agents</h3>
+                        <p class="text-gray-400 text-sm">
+                            Local-first AI agents that automate complex workflows on your hardware, ensuring your data
+                            never leaves your control.
+                        </p>
+                    </div>
+
+                    <!-- Project Type 4 -->
+                    <div class="bg-gray-800/50 p-6 rounded-xl hover:bg-gray-800 transition border border-gray-700">
+                        <div class="text-green-500 text-3xl mb-4"><i class="fas fa-coins"></i></div>
+                        <h3 class="text-xl font-bold mb-3">Crypto & Fintech</h3>
+                        <p class="text-gray-400 text-sm">
+                            Non-custodial wallets, private payment gateways, and automated trading systems.
+                        </p>
+                    </div>
+
+                    <!-- Project Type 5 -->
+                    <div class="bg-gray-800/50 p-6 rounded-xl hover:bg-gray-800 transition border border-gray-700">
+                        <div class="text-yellow-500 text-3xl mb-4"><i class="fas fa-shield-alt"></i></div>
+                        <h3 class="text-xl font-bold mb-3">Security & Privacy</h3>
+                        <p class="text-gray-400 text-sm">
+                            VPN clients, custom ad-blocking solutions, and anti-fingerprinting technologies.
+                        </p>
+                    </div>
+
+                    <!-- Project Type 6 -->
+                    <div class="bg-gray-800/50 p-6 rounded-xl hover:bg-gray-800 transition border border-gray-700">
+                        <div class="text-red-500 text-3xl mb-4"><i class="fas fa-terminal"></i></div>
+                        <h3 class="text-xl font-bold mb-3">Offensive Security</h3>
+                        <p class="text-gray-400 text-sm">
+                            Penetration testing tools and security auditing utilities (for defensive purposes).
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Philosophy & Exclusions -->
+        <section class="mb-20 grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div class="glass p-10 rounded-3xl">
+                <h2 class="text-2xl font-bold mb-6 text-purple-400">Philosophy</h2>
+                <p class="text-gray-300 mb-6 leading-relaxed">
+                    I am the most hardcore libertarian you will ever meet. This defines how I do business. I respect the
+                    privacy, anonymity, and autonomy of my customers above all else.
+                </p>
+                <p class="text-gray-300 leading-relaxed">
+                    I happily support clients in all industries and every possible business model, provided they align
+                    with my ethical boundaries.
+                </p>
+            </div>
+
+            <div class="glass p-10 rounded-3xl border-red-500/20">
+                <h2 class="text-2xl font-bold mb-6 text-red-400">Strict Exclusions</h2>
+                <p class="text-gray-300 mb-4">I will <span class="font-bold text-white">NOT</span> work on projects
+                    involving:</p>
+                <ul class="space-y-4 text-gray-400">
+                    <li class="flex items-start">
+                        <i class="fas fa-ban text-red-500 mt-1 mr-3"></i>
+                        <span>Creation or deployment of destructive malware (viruses) or ransomware. (I believe in
+                            karma).</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-ban text-red-500 mt-1 mr-3"></i>
+                        <span>Real-life extreme images or video depicting brutal violence, rape, or torture directed
+                            towards women, children, or animals.</span>
+                    </li>
+                    <li class="flex items-start">
+                        <i class="fas fa-ban text-red-500 mt-1 mr-3"></i>
+                        <span>CSAM (Child Sexual Abuse Material).</span>
+                    </li>
+                </ul>
+                <p class="mt-6 text-sm text-gray-500 italic">Anyone who likes that shit is a sick fuck.</p>
+            </div>
+        </section>
+
+        <!-- Payment Terms -->
+        <section class="mb-20">
+            <h2 class="text-3xl font-bold mb-10 text-center">Payment Terms</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Small Projects -->
+                <div class="glass p-8 rounded-2xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-purple-600 text-xs font-bold px-3 py-1 rounded-bl-lg">SHORT
+                        TERM</div>
+                    <h3 class="text-2xl font-bold mb-4">Small Projects</h3>
+                    <p class="text-gray-300 mb-6 text-sm">Price and functionality agreed in advance.</p>
+                    <ul class="space-y-4 text-gray-400 text-sm">
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                            <span>You pay <strong>after</strong> I complete the work to your satisfaction.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                            <span>I provide a link to the finished work for full testing.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                            <span>Code/binaries remain on my servers until payment.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                            <span>Upon payment, you receive all source code, binaries, installers, and
+                                documentation.</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Large Projects -->
+                <div class="glass p-8 rounded-2xl relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-pink-600 text-xs font-bold px-3 py-1 rounded-bl-lg">LONG TERM
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Larger Engagements</h3>
+                    <p class="text-gray-300 mb-6 text-sm">Defined phases and milestones.</p>
+                    <ul class="space-y-4 text-gray-400 text-sm">
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                            <span>Work is broken down into useful, testable deliverables.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                            <span>Pay after each milestone is reached to your satisfaction.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                            <span>Deliverables released after each payment.</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i class="fas fa-check text-green-500 mt-1 mr-2"></i>
+                            <span>High emphasis on clear constraints and expectations.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Maintenance & Support -->
+        <section class="mb-20 glass p-10 rounded-3xl">
+            <h2 class="text-2xl font-bold mb-6">Maintenance & Support</h2>
+            <div class="space-y-6 text-gray-300">
+                <p>
+                    I always provide the customer with all necessary support to install, configure, and deploy whatever
+                    I create for them.
+                </p>
+                <p>
+                    For complex, server-side products, I include <strong>professional installation on customer hardware
+                        at no extra charge</strong>. Otherwise, I provide training and support for you or your technical
+                    team to help you get up and running on your own.
+                </p>
+                <div class="bg-gray-800/50 p-6 rounded-xl border-l-4 border-purple-500">
+                    <h4 class="font-bold text-white mb-2">Ongoing Support</h4>
+                    <p class="text-sm">
+                        I happily answer a reasonable volume of tech support questions over email or Telegram free of
+                        charge, on an ongoing basis.
+                    </p>
+                    <p class="text-sm mt-4 text-gray-400">
+                        <em>Note: If you want anything that requires me to write code, do hands-on server
+                            administration, or tweak designs, I will charge a fair and reasonable price for the
+                            work.</em>
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Affiliates -->
+        <section
+            class="mb-20 bg-gradient-to-r from-purple-900/40 to-pink-900/40 p-10 rounded-3xl border border-purple-500/30 text-center">
+            <h2 class="text-3xl font-bold mb-4">Affiliates / Sales Reps Wanted</h2>
+            <p class="text-xl text-gray-200 mb-8">
+                The Unknown Dev pays <span class="text-green-400 font-bold">$50 USDT</span> per new customer you send
+                our way.
+            </p>
+            <a href="https://t.me/vlixai" target="_blank"
+                class="inline-flex items-center space-x-2 bg-white text-purple-900 font-bold py-3 px-8 rounded-full hover:bg-gray-100 transition transform hover:scale-105">
+                <i class="fab fa-telegram"></i>
+                <span>Contact via Telegram</span>
+            </a>
+            <p class="mt-4 text-sm text-gray-400">Contact to discuss details and exact terms.</p>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="container mx-auto px-6 py-8 text-center text-gray-600 text-sm">
+        &copy; 2024 Vlix. Built as a showcase by <span class="text-gray-400">The Unknown Dev</span>.
+    </footer>
+
+</body>
+
+</html>

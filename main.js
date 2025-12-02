@@ -264,7 +264,7 @@ const https = require('https');
 const AdmZip = require('adm-zip');
 
 function checkForUpdates(win) {
-    const versionUrl = 'https://vlixy.netlify.app/updates/version.json';
+    const versionUrl = 'https://vlix.ai/updates/version.json';
 
     https.get(versionUrl, (res) => {
         let data = '';

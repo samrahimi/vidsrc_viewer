@@ -1,3 +1,12 @@
+# usage: python deploy_latest_version.py
+# effect: downloads the installers for android, intel mac, apple silicon, windows, and linux from github actions
+# note that installers take up to 5 mins to build following each push to github, so make sure the builds are ready before you run this
+# 
+# this version of the script assumes that the production website is hosted on netlify. if we change hosting companies (and we will), please update push_to_production() below as needed
+
+
+
+
 import os
 import json
 import subprocess
@@ -11,6 +20,17 @@ WEBSITE_DIR = os.path.join(REPO_DIR, "vlix_website")
 INSTALLERS_DIR = os.path.join(WEBSITE_DIR, "installers")
 WORKFLOW_NAME = "Build Electron App"
 
+def push_to_production():
+    """Deploys the website to production server (public URL: vlix.ai)."""
+    print("Deploying to production website on vlix.ai...")
+    result = subprocess.run(
+        ["netlify", "deploy", "--prod", "."],
+        capture_output=True,
+        text=True,
+        check=True,
+        cwd=WEBSITE_DIR
+    )
+    print(result.stdout)
 def run_gh_command(args):
     """Runs a gh CLI command and returns the output."""
     try:
@@ -157,7 +177,13 @@ def main():
         download_artifacts(run_id, temp_dir)
         process_artifacts(run_number, temp_dir)
     
-    print("Done!")
+    print("Site updated successfully. Ready to deploy.")
+    if not shutil.which("netlify"):
+        print("Netlify CLI is not installed, website has been updated locally.")
+    else:
+        push_to_production()
 
+
+    print("Done! Latest builds are now available on https://vlix.ai")
 if __name__ == "__main__":
     main()

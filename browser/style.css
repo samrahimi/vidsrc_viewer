@@ -774,12 +774,13 @@ body {
     transform: rotate(90deg);
 }
 
+/* Chat Panel on Desktop: Right side column, 400px, full height, rounded corners, shadow, z-index, overflow hidden, transform origin, transition, border, pointer events */
 #chat-iframe-container {
     position: fixed;
     bottom: 100px;
     right: 30px;
     width: 400px;
-    height: 600px;
+    height: calc(100% - 120px);
     background: var(--bg-card);
     border-radius: 16px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
@@ -788,22 +789,31 @@ body {
     transform-origin: bottom right;
     transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1), opacity 0.3s, visibility 0.3s;
     border: 1px solid rgba(255, 255, 255, 0.1);
+    pointer-events: none;
 }
 
-pointer-events: none;
+/* Chat Panel on Mobile (Portrait Mode): Full width, full height, rounded corners, shadow, z-index, overflow hidden, transform origin, transition, border, pointer events */
+@media (max-width: 480px) {
+    #chat-iframe-container {
+        width: calc(100% - 40px);
+        right: 20px;
+        bottom: 100px;
+        height: calc(100% - 120px);
+    }
+
+    #chat-fab {
+        bottom: 20px;
+        right: 20px;
+    }
 }
 
-/* Mobile Chat Layout */
+/* Tablets, Desktop App in Windowed Mode: 50% width, full height, rounded corners, shadow, z-index, overflow hidden, transform origin, transition, border, pointer events */
 @media (max-width: 768px) {
     #chat-iframe-container {
-        /* Portrait: Full screen, bottom aligned */
-        bottom: 0;
-        right: 0;
-        width: 100%;
-        height: 100%;
-        border-radius: 0;
-        border: none;
-        box-shadow: none;
+        width: 50%;
+        right: 20px;
+        bottom: 100px;
+        height: calc(100% - 120px);
     }
 
     #chat-iframe-container.hidden {
@@ -818,9 +828,10 @@ pointer-events: none;
     }
 }
 
+/* This was an attempt to make chat work while viewing a movie on your phone.
+It failed miserably. We should probably hide the chat toggler in this case until we find a solution 
 @media (max-width: 900px) and (orientation: landscape) {
     #chat-iframe-container {
-        /* Landscape: Chat column on right third */
         top: 0;
         bottom: 0;
         right: 0;
@@ -833,9 +844,8 @@ pointer-events: none;
 
     #chat-iframe-container.hidden {
         transform: translateX(100%);
-        /* Slide right */
     }
-}
+} */
 
 #chat-iframe {
     width: 100%;
@@ -844,19 +854,6 @@ pointer-events: none;
     background: transparent;
 }
 
-@media (max-width: 480px) {
-    #chat-iframe-container {
-        width: calc(100% - 40px);
-        right: 20px;
-        bottom: 100px;
-        height: 70vh;
-    }
-
-    #chat-fab {
-        bottom: 20px;
-        right: 20px;
-    }
-}
 
 /* Onboarding Modal */
 #onboarding-modal-container {

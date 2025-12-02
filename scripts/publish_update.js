@@ -41,7 +41,7 @@ console.log(`Created ${zipPath}`);
 // Create version.json
 const versionData = {
     version: version,
-    url: 'https://vlixy.netlify.app/updates/update.zip'
+    url: 'https://vlix.ai/updates/update.zip'
 };
 const versionJsonPath = path.join(updatesDir, 'version.json');
 fs.writeFileSync(versionJsonPath, JSON.stringify(versionData, null, 2));

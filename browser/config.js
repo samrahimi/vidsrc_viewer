@@ -18,7 +18,7 @@ window.loadConfig = async function () {
 
     // 2. Load remote settings
     try {
-        const remoteResponse = await fetch('https://vlixy.netlify.app/config/settings.json');
+        const remoteResponse = await fetch('https://vlix.ai/config/settings.json');
         if (remoteResponse.ok) {
             remoteConfig = await remoteResponse.json();
         } else {
