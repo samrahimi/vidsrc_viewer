@@ -1,4 +1,4 @@
-const APP_VERSION = '1.0.3'; // Updated by publish script
+const APP_VERSION = '1.2.0'; // Updated by publish script
 
 // Detect if running in Electron or Android (Native)
 const isElectron = navigator.userAgent.toLowerCase().includes('electron');

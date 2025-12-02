@@ -1,6 +1,6 @@
 {
-    "playerUrlTemplateMovie": "https://vidsrc.cc/v2/embed/movie/{tmdbId}?autoplay=true",
-    "playerUrlTemplateTv": "https://vidsrc.cc/v2/embed/tv/{tmdbId}?autoplay=true",
+    "playerUrlTemplateMovie": "https://vidsrc-embed.ru/embed/movie/{tmdbId}?autoplay=true",
+    "playerUrlTemplateTv": "https://vidsrc-embed.ru/embed/tv/{tmdbId}?autoplay=true",
     "dailyTokenLimit": 500000,
     "openaiApiKey": "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",
     "openaiChatUrl": "https://openrouter.ai/api/v1/chat/completions",

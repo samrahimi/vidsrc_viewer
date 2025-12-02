@@ -283,7 +283,7 @@
 <body>
 
     <div class="player-container">
-        <iframe id="video-player" allowfullscreen></iframe>
+        <iframe id="video-player" allow="fullscreen; autoplay; picture-in-picture"></iframe>
         <div id="wake-overlay"></div>
 
         <!-- Top Right Panel: Home, Bookmark, Info -->
@@ -356,11 +356,6 @@
     </div>
 
     <script>
-        const API_KEY = "829a43a98259bc44cae297489c7e3bba";
-        const BASE_URL = "https://api.themoviedb.org/3";
-        const IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
-        const IMAGE_ORIGINAL_URL = "https://image.tmdb.org/t/p/original";
-
         const urlParams = new URLSearchParams(window.location.search);
         const tmdbId = urlParams.get('tmdbId');
         const type = urlParams.get('type');
@@ -389,7 +384,7 @@
 
             document.body.style.cursor = 'default';
 
-            // Allow clicks to pass through to iframe when controls are visible
+            // Allow clicks to pass to iframe when controls are visible
             // actually, we want the overlay to be inactive so we can click buttons
             // BUT if we click the video, we want to pause it.
             // The issue is: if controls are hidden, we can't click buttons (they are hidden).
@@ -482,7 +477,7 @@
 
         async function initializeSession(id, type) {
             try {
-                const response = await fetch(`${BASE_URL}/${type}/${id}?api_key=${API_KEY}`);
+                const response = await fetch(`${window.AppConfig.tmdbBaseUrl}/${type}/${id}?api_key=${window.AppConfig.tmdbApiKey}`);
                 const data = await response.json();
 
                 const title = data.title || data.name;
@@ -637,11 +632,11 @@
             try {
                 // Fetch extra details like cast if needed, or just use what we have
                 // Let's fetch credits to match homepage modal
-                const response = await fetch(`${BASE_URL}/${type}/${tmdbId}?api_key=${API_KEY}&append_to_response=credits`);
+                const response = await fetch(`${window.AppConfig.tmdbBaseUrl}/${type}/${tmdbId}?api_key=${window.AppConfig.tmdbApiKey}&append_to_response=credits`);
                 const data = await response.json();
 
                 const cast = data.credits.cast.slice(0, 5).map(c => c.name).join(', ');
-                const posterUrl = data.poster_path ? `${IMAGE_BASE_URL}${data.poster_path}` : '';
+                const posterUrl = data.poster_path ? `${window.AppConfig.tmdbImageBaseUrl}${data.poster_path}` : '';
 
                 modalBody.innerHTML = `
                     <div class="modal-layout">

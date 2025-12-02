@@ -1,8 +1,4 @@
-const API_KEY = "829a43a98259bc44cae297489c7e3bba";
-const BASE_URL = "https://api.themoviedb.org/3";
-const IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500";
-const IMAGE_ORIGINAL_URL = "https://image.tmdb.org/t/p/original";
-const APP_VERSION = '1.1.0'; // Updated by publish script
+const APP_VERSION = '1.2.0'; // Updated by publish script
 
 // Detect if running in Electron or Android (Native)
 const isElectron = navigator.userAgent.toLowerCase().includes('electron');
@@ -247,7 +243,7 @@ async function fetchTrending(type, timeWindow) {
     showLoading(grid);
 
     try {
-        const response = await fetch(`${BASE_URL}/trending/${type}/${timeWindow}?with_original_language=en&api_key=${API_KEY}`);
+        const response = await fetch(`${window.AppConfig.tmdbBaseUrl}/trending/${type}/${timeWindow}?with_original_language=en&api_key=${window.AppConfig.tmdbApiKey}`);
         const data = await response.json();
 
         if (type === 'movie' && timeWindow === 'day') {
@@ -271,7 +267,7 @@ async function handleSearch(query) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
     try {
-        const response = await fetch(`${BASE_URL}/search/multi?api_key=${API_KEY}&query=${encodeURIComponent(query)}`);
+        const response = await fetch(`${window.AppConfig.tmdbBaseUrl}/search/multi?api_key=${window.AppConfig.tmdbApiKey}&query=${encodeURIComponent(query)}`);
         const data = await response.json();
 
         const filteredResults = data.results.filter(item => item.media_type === 'movie' || item.media_type === 'tv');
@@ -296,7 +292,7 @@ function closeSearch() {
 
 async function fetchGenres() {
     try {
-        const response = await fetch(`${BASE_URL}/genre/movie/list?api_key=${API_KEY}`);
+        const response = await fetch(`${window.AppConfig.tmdbBaseUrl}/genre/movie/list?api_key=${window.AppConfig.tmdbApiKey}`);
         const data = await response.json();
         data.genres.forEach(g => genres[g.id] = g.name);
     } catch (error) {
@@ -326,7 +322,7 @@ async function renderCategoryFeeds() {
 
         // Fetch and render preview (first 5 items)
         try {
-            const response = await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=${genreId}&sort_by=popularity.desc&with_original_language=en&page=1`);
+            const response = await fetch(`${window.AppConfig.tmdbBaseUrl}/discover/movie?api_key=${window.AppConfig.tmdbApiKey}&with_genres=${genreId}&sort_by=popularity.desc&with_original_language=en&page=1`);
             const data = await response.json();
             const previewItems = data.results.slice(0, 14); // Show top 14
             const grid = section.querySelector(`#category-grid-${genreId}`);
@@ -452,7 +448,7 @@ async function loadCategoryPage() {
     loadMoreCategoryBtn.textContent = 'Loading...';
 
     try {
-        const response = await fetch(`${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=${currentCategoryId}&sort_by=popularity.desc&page=${currentCategoryPage}`);
+        const response = await fetch(`${window.AppConfig.tmdbBaseUrl}/discover/movie?api_key=${window.AppConfig.tmdbApiKey}&with_genres=${currentCategoryId}&sort_by=popularity.desc&page=${currentCategoryPage}`);
         const data = await response.json();
 
         const shouldAppend = currentCategoryPage > 1;
@@ -498,7 +494,7 @@ function handleInfiniteScroll() {
 function updateHero(item) {
     if (!item) return;
 
-    const backdropUrl = item.backdrop_path ? `${IMAGE_ORIGINAL_URL}${item.backdrop_path}` : '';
+    const backdropUrl = item.backdrop_path ? `${window.AppConfig.tmdbImageOriginalUrl}${item.backdrop_path}` : '';
     const title = item.title || item.name;
     const desc = item.overview;
     const year = (item.release_date || item.first_air_date || '').split('-')[0];
@@ -550,7 +546,7 @@ function safeExtractItemData(item, forcedType) {
             }
         }
 
-        const posterUrl = item.poster_path ? `${IMAGE_BASE_URL}${item.poster_path}` : '';
+        const posterUrl = item.poster_path ? `${window.AppConfig.tmdbImageBaseUrl}${item.poster_path}` : '';
 
         // Safe genre extraction
         let genresStr = '';
@@ -635,7 +631,7 @@ function renderGrid(items, container, forcedType, shouldAppend = false) {
 async function fetchRuntime(id, type) {
     try {
         // Check if we already have it in cache/memory (optional optimization, skipping for now)
-        const response = await fetch(`${BASE_URL}/${type}/${id}?api_key=${API_KEY}`);
+        const response = await fetch(`${window.AppConfig.tmdbBaseUrl}/${type}/${id}?api_key=${window.AppConfig.tmdbApiKey}`);
         const data = await response.json();
 
         let runtime = '';
@@ -665,14 +661,14 @@ window.openInfoModal = async function (id, type) {
     modalOverlay.classList.remove('hidden');
 
     try {
-        const response = await fetch(`${BASE_URL}/${type}/${id}?api_key=${API_KEY}&append_to_response=credits,videos`);
+        const response = await fetch(`${window.AppConfig.tmdbBaseUrl}/${type}/${id}?api_key=${window.AppConfig.tmdbApiKey}&append_to_response=credits,videos`);
         const data = await response.json();
 
         const title = data.title || data.name;
         const year = (data.release_date || data.first_air_date || '').split('-')[0];
         const rating = data.vote_average ? data.vote_average.toFixed(1) : 'N/A';
-        const posterUrl = data.poster_path ? `${IMAGE_BASE_URL}${data.poster_path}` : '';
-        const backdropUrl = data.backdrop_path ? `${IMAGE_ORIGINAL_URL}${data.backdrop_path}` : '';
+        const posterUrl = data.poster_path ? `${window.AppConfig.tmdbImageBaseUrl}${data.poster_path}` : '';
+        const backdropUrl = data.backdrop_path ? `${window.AppConfig.tmdbImageOriginalUrl}${data.backdrop_path}` : '';
         const overview = data.overview;
         const genresList = data.genres.map(g => g.name).join(', ');
         const cast = data.credits.cast.slice(0, 5).map(c => c.name).join(', ');
@@ -820,7 +816,7 @@ async function addToHistory(id, type) {
     if (!item) {
         // Fetch details if not found
         try {
-            const response = await fetch(`${BASE_URL}/${type}/${id}?api_key=${API_KEY}`);
+            const response = await fetch(`${window.AppConfig.tmdbBaseUrl}/${type}/${id}?api_key=${window.AppConfig.tmdbApiKey}`);
             item = await response.json();
         } catch (e) {
             console.error("Could not fetch item for history", e);
