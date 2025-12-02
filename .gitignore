@@ -8,4 +8,5 @@ out/
 *.pyc
 installers/
 .venv
-vlix_website/updates
+vlix_website/updates/
+*.m3u8
