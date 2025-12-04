@@ -15,4 +15,5 @@ ZONEFILE.dns
 version.json
 *:Zone.Identifier
 
-
+resolver/
+vlix_website/web/*
