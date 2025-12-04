@@ -1,9 +1,9 @@
 {
-    "playerUrlTemplateMovie": "https://vidsrc-embed.ru/embed/movie/{tmdbId}",
-    "playerUrlTemplateTv": "https://vidsrc-embed.ru/embed/tv/{tmdbId}",
+    "playerUrlTemplateMovie": "https://vidrock.net/movie/{tmdbId}",
+    "playerUrlTemplateTv": "https://vidrock.net/tv/{tmdbId}/1/1",
     "dailyTokenLimit": 150000,
-    "openaiApiKey": "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",
-    "openaiChatUrl": "https://openrouter.ai/api/v1/chat/completions",
+    "openaiApiKey": "",
+    "openaiChatUrl": "https://vlix.ai/.netlify/functions/chat",
     "agentModelId": "x-ai/grok-4-fast",
     "tmdbApiKey": "829a43a98259bc44cae297489c7e3bba",
     "tmdbBaseUrl": "https://api.themoviedb.org/3",
