@@ -1,7 +1,7 @@
 {
-    "playerUrlTemplateMovie": "https://vidrock.net/movie/{tmdbId}",
-    "playerUrlTemplateTv": "https://vidrock.net/tv/{tmdbId}/1/1",
-    "dailyTokenLimit": 150000,
+    "playerUrlTemplateMovie": "https://vidsrc.cc/v2/embed/movie/{tmdbId}",
+    "playerUrlTemplateTv": "https://vidsrc.cc/v2/embed/tv/{tmdbId}",
+    "dailyTokenLimit": 100000,
     "openaiApiKey": "",
     "openaiChatUrl": "https://vlix.ai/.netlify/functions/chat",
     "agentModelId": "x-ai/grok-4-fast",

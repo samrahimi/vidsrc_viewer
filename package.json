@@ -1,11 +1,12 @@
 {
     "name": "vlix",
-    "version": "1.7.0",
+    "version": "1.7.2",
     "main": "main.js",
     "scripts": {
         "build:android": "npx cap sync android",
         "start": "electron .",
-        "build": "echo 'Ready to go!",
+        "build:web": "cp -r ./browser ./vlix_website/web && npx http-server ./vlix_website",
+        "deploy": "npm run build:web && python scripts/deploy_binary.py",
         "dist": "electron-builder"
     },
     "build": {

@@ -733,9 +733,37 @@ body {
         font-size: 2rem;
     }
 
+    /* Mobile Header Adjustments */
     .search-container {
-        display: none;
-        /* Hide search on mobile for MVP simplicity */
+        display: block;
+        margin: 0 0.5rem;
+        flex: 1;
+        width: auto;
+    }
+
+    .search-wrapper {
+        height: 40px;
+    }
+
+    #search-input {
+        padding: 0.5rem 2.5rem 0.5rem 2.5rem;
+        font-size: 1rem;
+    }
+
+    .search-icon {
+        left: 0.8rem;
+        width: 18px;
+        height: 18px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    .logo {
+        font-size: 1.5rem;
+    }
+
+    #app-badge {
+        display: none !important;
     }
 }
 
@@ -909,7 +937,7 @@ body {
         right: 0.5rem;
     }
 }
-}
+
 
 #chat-iframe-container.hidden {
     transform: translateY(100%);
@@ -921,7 +949,7 @@ body {
     right: 20px;
     z-index: 10000;
 }
-}
+
 
 /* Chat Panel on Mobile (Portrait Mode): Full width, full height, rounded corners, shadow, z-index, overflow hidden, transform origin, transition, border, pointer events */
 @media (max-width: 480px) {
