@@ -127,9 +127,56 @@ async function initApp() {
         renderHistory();
         renderRecommendationsFeed();
         renderCategoryFeeds();
+        checkWebBanner(); // Check for web app banner
     }
 
     setupEventListeners();
+}
+
+function checkWebBanner() {
+    // Only show on web app
+    if (!window.location.href.includes('vlix.ai/web')) return;
+
+    // Check if already closed this session
+    if (sessionStorage.getItem('banner_closed')) return;
+
+    const userAgent = navigator.userAgent.toLowerCase();
+    const platform = navigator.platform.toLowerCase();
+    let osName = null;
+
+    // Detect supported native platforms
+    if (userAgent.includes('android')) {
+        osName = 'Android';
+    } else if (platform.includes('win') || userAgent.includes('windows')) {
+        osName = 'Windows';
+    } else if (platform.includes('mac') || userAgent.includes('macintosh')) {
+        // Exclude iOS
+        if (!/iphone|ipad|ipod/.test(userAgent)) {
+            osName = 'macOS';
+        }
+    } else if (platform.includes('linux') || userAgent.includes('linux')) {
+        // Exclude Android (already checked)
+        if (!userAgent.includes('android')) {
+            osName = 'Linux';
+        }
+    }
+
+    // If supported OS detected, show banner
+    if (osName) {
+        const banner = document.getElementById('native-app-banner');
+        const osSpan = document.getElementById('banner-os-name');
+        const closeBtn = document.getElementById('close-banner');
+
+        if (banner && osSpan && closeBtn) {
+            osSpan.textContent = osName;
+            banner.classList.remove('hidden');
+
+            closeBtn.addEventListener('click', () => {
+                banner.classList.add('hidden');
+                sessionStorage.setItem('banner_closed', 'true');
+            });
+        }
+    }
 }
 
 async function checkForAndroidUpdates() {

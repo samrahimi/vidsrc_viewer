@@ -1,6 +1,10 @@
-# Is AI The Future of Piracy? Learnings from building Vlix!
+# Is AI The Future of Streaming? Learnings from building Vlix!
 
-I’ve been a pirate since the Napster days  (literally... I used it in high school lol). I’ve used everything: Kazaa, Limewire, private trackers, Plex shares, Kodi builds, and lately, Stremio + RealDebrid.
+I’ve been using Napster since before it was cool  (literally... I used it in high school. 1997!). Since then I’ve used everything: Kazaa, Limewire, private trackers, Plex shares, Kodi builds, and lately, Stremio + WebStreamr.
+
+You can say I'm a bit of a pirate, but the more gentlemanly sort; I try and avoid actually handling the media, so you won't find me seeding torrents, and at the same time, I have limited patience for the myriad free, ad-choked websites and embedded players that are the backbone of the current piracy ecosystem. A 15 second commercial break once in awhile I can handle, but when I press Play, I expect the movie to start playing. 
+
+If you've ever used one of these free streaming sites (fmovies, etc), you know that the first time you press play, you get a popup for some sketchy website. Maybe the second time, too. Eventually, if you persist, the play button will magically do what it's supposed to dc                                                                                                                                                         o, and play the movie. Usually in full HD, with                                          v
 
 And I have to say it: **The current state of "high-end" piracy is stagnant.**
 
@@ -66,8 +70,7 @@ If you want to try it, the link is in the comments. But more importantly, I want
 
 *(Screenshots attached: The Home Screen, The Agent refusing my request, The clean Player UI)*
 
-Mods: Sorry if this is self promotion. Hope you can make an exception because its a 100% ad-free product that's actually pleasant to use, I'm not making any money from it, and it really does have some innovative features that, to my knowledge have never been seen before, not in the pirate space... and I'm not sure if any mainsteam apps have added an AI agent to their core offering.
-
+Is this shameless sel
 
 I would LOVE you all to check this out and give me your feedback! https://vlix.ai to download the beta version on your platform of choice.
 

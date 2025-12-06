@@ -65,16 +65,21 @@
                 <p id="detected-os" class="text-sm text-gray-400 mt-3 font-medium">Detecting your device...</p>
             </div>
 
-            <!-- Toggle All Downloads -->
-            <button id="toggle-all-downloads"
-                class="text-gray-400 hover:text-white underline text-sm mb-12 flex items-center space-x-2 transition">
-                <i class="fas fa-list"></i>
-                <span>Show downloads for all platforms</span>
-            </button>
-
-            <!-- All Downloads Grid (Hidden by default) -->
-            <div id="all-downloads"
-                class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-5xl">
+            <!-- All Downloads Grid -->
+            <div id="all-downloads" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 w-full max-w-6xl">
+                <!-- Web App -->
+                <div
+                    class="glass p-6 rounded-xl flex flex-col items-center hover:bg-white/10 transition group relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-pink-600 text-xs font-bold px-2 py-1 rounded-bl-lg">NEW</div>
+                    <i class="fas fa-globe text-4xl mb-4 text-pink-400 group-hover:scale-110 transition"></i>
+                    <h3 class="text-lg font-semibold mb-2">Web App</h3>
+                    <p class="text-xs text-gray-400 mb-4">iOS / Browser</p>
+                    <a id="link-webapp" href="#"
+                        class="text-purple-400 hover:text-purple-300 font-medium flex items-center space-x-1">
+                        <span>Launch App</span>
+                        <i class="fas fa-external-link-alt text-xs"></i>
+                    </a>
+                </div>
                 <!-- Windows -->
                 <div class="glass p-6 rounded-xl flex flex-col items-center hover:bg-white/10 transition group">
                     <i class="fab fa-windows text-4xl mb-4 text-blue-400 group-hover:scale-110 transition"></i>
@@ -132,17 +137,77 @@
                 </div>
             </div>
 
+            <div id="webapp-disclaimer"
+                class="hidden mt-8 max-w-3xl bg-yellow-900/30 border border-yellow-600/50 p-6 rounded-xl text-left">
+                <h4 class="text-yellow-400 font-bold mb-2 flex items-center">
+                    <i class="fas fa-exclamation-triangle mr-2"></i> Important Note for Web App Users
+                </h4>
+                <p class="text-gray-300 text-sm mb-2">
+                    We built the Vlix Web App to allow iOS users to experience our product, as Apple restrictions
+                    prevent us from offering a native app. It also serves as a way to try Vlix before downloading.
+                </p>
+                <p class="text-gray-300 text-sm">
+                    <strong>Please Note:</strong> The user experience in the web app is <em>significantly inferior</em>
+                    to our native apps. You may encounter annoying popups from video providers that we cannot suppress
+                    in a browser environment. Our native apps (Windows, Mac, Android) allow us to <strong>100% suppress
+                        these ads</strong> and provide a premium, Netflix-quality experience.
+                </p>
+            </div>
+
             <p id="version-display" class="mt-12 text-gray-500 text-xs font-mono"></p>
+        </div>
+
+        <!-- Why Vlix? Summary Section -->
+        <div class="container mx-auto px-6 py-20 z-10">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="glass p-8 rounded-2xl text-left hover:bg-white/5 transition">
+                    <i class="fas fa-ban text-4xl mb-4 text-red-400"></i>
+                    <h3 class="text-xl font-bold mb-2">Zero Ads</h3>
+                    <p class="text-gray-400 text-sm mb-4">
+                        Popups are physically impossible in our native apps. Enjoy a premium, interruption-free
+                        experience.
+                    </p>
+                    <a href="features.html" class="text-purple-400 hover:text-purple-300 text-sm font-medium">Learn more
+                        &rarr;</a>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="glass p-8 rounded-2xl text-left hover:bg-white/5 transition">
+                    <i class="fas fa-robot text-4xl mb-4 text-blue-400"></i>
+                    <h3 class="text-xl font-bold mb-2">AI Powered</h3>
+                    <p class="text-gray-400 text-sm mb-4">
+                        The "Search Bar" is a movie nerd. Ask for recommendations, plot details, or hidden gems.
+                    </p>
+                    <a href="features.html" class="text-purple-400 hover:text-purple-300 text-sm font-medium">Meet the
+                        Agent &rarr;</a>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="glass p-8 rounded-2xl text-left hover:bg-white/5 transition">
+                    <i class="fas fa-globe text-4xl mb-4 text-pink-400"></i>
+                    <h3 class="text-xl font-bold mb-2">Universal</h3>
+                    <p class="text-gray-400 text-sm mb-4">
+                        Stream from any source. We don't care about licensing windows, we just care about what you want
+                        to watch.
+                    </p>
+                    <a href="features.html" class="text-purple-400 hover:text-purple-300 text-sm font-medium">See
+                        Features &rarr;</a>
+                </div>
+            </div>
         </div>
     </main>
 
     <!-- Footer -->
     <footer class="container mx-auto px-6 py-8 text-center text-gray-600 text-sm z-10">
-        &copy; 2024 Vlix. Built as a showcase by <a href="services.html"
-            class="text-gray-500 hover:text-purple-400 transition">Unknown Dev</a>.
+        <p class="mb-2">&copy; 2024 Vlix. Built as a showcase by <a href="services.html"
+                class="text-gray-500 hover:text-purple-400 transition">Unknown Dev</a>.</p>
+        <p class="text-gray-500">vlixsupport@proton.me</p>
     </footer>
 
     <script>
+        const WEB_APP_URL = "https://vlix.ai/web"; // Updated URL
+
         async function init() {
             try {
                 const response = await fetch('version.json');
@@ -157,6 +222,7 @@
                 if (files.macos_intel) document.getElementById('link-macos-intel').href = files.macos_intel;
                 if (files.android) document.getElementById('link-android').href = files.android;
                 if (files.linux) document.getElementById('link-linux').href = files.linux;
+                document.getElementById('link-webapp').href = WEB_APP_URL;
 
                 // Detect OS
                 const userAgent = navigator.userAgent.toLowerCase();
@@ -165,8 +231,15 @@
                 let downloadLink = '#';
                 let buttonText = 'Download Vlix';
                 let iconClass = 'fas fa-download';
+                let isWebApp = false;
 
-                if (platform.includes('win') || userAgent.includes('windows')) {
+                if (/iphone|ipad|ipod/.test(userAgent)) {
+                    detectedOS = 'iOS';
+                    downloadLink = WEB_APP_URL;
+                    buttonText = 'Launch Web App';
+                    iconClass = 'fas fa-globe';
+                    isWebApp = true;
+                } else if (platform.includes('win') || userAgent.includes('windows')) {
                     detectedOS = 'Windows';
                     downloadLink = files.windows;
                     buttonText = 'Download for Windows';
@@ -178,13 +251,7 @@
                     iconClass = 'fab fa-android';
                 } else if (platform.includes('mac') || userAgent.includes('macintosh')) {
                     detectedOS = 'macOS';
-                    // Simple heuristic for Apple Silicon vs Intel (not perfect in browser)
-                    // Default to Apple Silicon as it's newer, or offer choice?
-                    // For the primary button, let's link to Apple Silicon but maybe change text?
-                    // Or just default to Apple Silicon.
-                    // Actually, let's try to detect if possible, otherwise default to Apple Silicon.
-                    // There isn't a reliable way to detect M1 vs Intel in standard JS without high entropy API.
-                    // We will default to Apple Silicon and user can switch in "All Downloads".
+                    // Default to Apple Silicon
                     downloadLink = files.macos_arm64;
                     buttonText = 'Download for macOS (Apple Silicon)';
                     iconClass = 'fab fa-apple';
@@ -200,17 +267,22 @@
                 const txt = document.getElementById('download-text');
                 const icon = document.getElementById('download-icon');
                 const osLabel = document.getElementById('detected-os');
+                const disclaimer = document.getElementById('webapp-disclaimer');
 
                 if (downloadLink && downloadLink !== '#') {
                     btn.onclick = () => window.location.href = downloadLink;
                     txt.textContent = buttonText;
                     icon.className = iconClass;
                     osLabel.textContent = `Detected: ${detectedOS}`;
+
+                    if (isWebApp) {
+                        disclaimer.classList.remove('hidden');
+                    }
                 } else {
+                    // Fallback if detection fails or weird state
                     txt.textContent = "Select your platform below";
                     icon.className = 'fas fa-laptop';
                     osLabel.textContent = "Could not detect OS automatically";
-                    document.getElementById('all-downloads').classList.remove('hidden');
                 }
 
             } catch (e) {
@@ -218,17 +290,6 @@
                 document.getElementById('detected-os').textContent = "Error loading download info.";
             }
         }
-
-        // Toggle Logic
-        document.getElementById('toggle-all-downloads').addEventListener('click', () => {
-            const grid = document.getElementById('all-downloads');
-            grid.classList.toggle('hidden');
-            const btn = document.getElementById('toggle-all-downloads');
-            const span = btn.querySelector('span');
-            span.textContent = grid.classList.contains('hidden')
-                ? 'Show downloads for all platforms'
-                : 'Hide all downloads';
-        });
 
         init();
     </script>

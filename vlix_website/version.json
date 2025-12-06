@@ -1,10 +1,10 @@
 {
-  "build": 25,
+  "build": 29,
   "files": {
-    "android": "installers/Vlix-Build-25-Android.apk",
-    "windows": "installers/Vlix-Build-25-Windows.zip",
-    "linux": "installers/Vlix-Build-25-Linux.AppImage",
-    "macos_intel": "installers/Vlix-Build-25-macOS-Intel.dmg",
-    "macos_arm64": "installers/Vlix-Build-25-macOS-AppleSilicon.dmg"
+    "android": "installers/Vlix-Build-29-Android.apk",
+    "windows": "installers/Vlix-Build-29-Windows.zip",
+    "linux": "installers/Vlix-Build-29-Linux.AppImage",
+    "macos_intel": "installers/Vlix-Build-29-macOS-Intel.dmg",
+    "macos_arm64": "installers/Vlix-Build-29-macOS-AppleSilicon.dmg"
   }
 }
