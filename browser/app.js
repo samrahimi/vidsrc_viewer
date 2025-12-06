@@ -803,8 +803,8 @@ window.playContent = function (tmdbId, type) {
     // Add to history
     addToHistory(tmdbId, type);
 
-    // Always use watch.html to ensure metrics and overlays work
-    window.location.href = `watch.html?tmdbId=${tmdbId}&type=${type}`;
+    // Always use stream.html to ensure metrics and overlays work
+    window.location.href = `stream.html?tmdbId=${tmdbId}&type=${type}`;
 };
 
 // --- Favorites Logic ---

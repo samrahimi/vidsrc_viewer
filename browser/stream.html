@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream - Vlix</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="config.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.js"
+        integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
+    <script src="longTermMemory.js"></script>
+
+    <style>
+        body {
+            background-color: #0f0f0f;
+            color: #e0e0e0;
+            font-family: 'Outfit', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Layout Containers --- */
+        .main-container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .header-nav {
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .content-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            padding: 0 2rem 2rem 2rem;
+        }
+
+        /* --- Player Section --- */
+        .player-section {
+            width: 100%;
+            max-width: 1000px;
+            /* Match info-section width */
+            margin: 0 auto;
+            /* Center to align with info-section */
+            position: relative;
+        }
+
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%;
+            /* 16:9 */
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid #333;
+        }
+
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* --- Info Section --- */
+        .info-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .title-block h1 {
+            font-size: 2.5rem;
+            margin: 0 0 0.5rem 0;
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .meta-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: #aaa;
+            font-size: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .rating-badge {
+            color: #ffd700;
+            font-weight: 600;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .btn-action {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn-action:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .btn-action.active {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: #fff;
+        }
+
+        .synopsis {
+            line-height: 1.6;
+            color: #ccc;
+            font-size: 1.1rem;
+            max-width: 800px;
+        }
+
+        .cast-list {
+            color: #888;
+            font-size: 0.95rem;
+        }
+
+        .cast-list span {
+            color: #ddd;
+        }
+
+        /* --- Floating Elements --- */
+        .floating-chat-toggle {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            background: #6200ea;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(98, 0, 234, 0.4);
+            z-index: 100;
+            transition: transform 0.2s ease;
+            border: none;
+            color: white;
+        }
+
+        .floating-chat-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        #chat-container {
+            position: fixed;
+            bottom: 90px;
+            right: 30px;
+            width: 350px;
+            height: 500px;
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 99;
+            overflow: hidden;
+            display: none;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        #chat-container.visible {
+            display: block;
+        }
+
+        #chat-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* --- Responsive: Mobile Portrait --- */
+        @media (max-width: 768px) and (orientation: portrait) {
+            .header-nav {
+                padding: 1rem;
+            }
+
+            .content-wrapper {
+                padding: 0 1rem 2rem 1rem;
+                gap: 1rem;
+            }
+
+            .video-wrapper {
+                border-radius: 0;
+                margin-left: -1rem;
+                width: calc(100% + 2rem);
+                border-left: none;
+                border-right: none;
+            }
+
+            .title-block h1 {
+                font-size: 1.8rem;
+            }
+
+            .synopsis {
+                font-size: 1rem;
+            }
+
+            /* Hide address bar trick (handled in JS mostly, but ensure height allows scroll) */
+            body {
+                min-height: 110vh;
+                /* Force scrollable to hide URL bar */
+            }
+        }
+
+        /* --- Responsive: Mobile Landscape --- */
+        @media (max-width: 900px) and (orientation: landscape) {
+            body {
+                background: #000;
+                overflow: hidden;
+                /* Prevent scrolling */
+            }
+
+            .header-nav,
+            .info-section,
+            .floating-chat-toggle,
+            #chat-container {
+                display: none !important;
+            }
+
+            .main-container,
+            .content-wrapper {
+                width: 100%;
+                height: 100vh;
+                max-width: none;
+                padding: 0;
+                margin: 0;
+            }
+
+            .player-section {
+                width: 100vw;
+                height: 100vh;
+                max-width: none;
+                /* Override desktop constraint */
+            }
+
+            .video-wrapper {
+                width: 100%;
+                height: 100%;
+                padding-bottom: 0;
+                border-radius: 0;
+                border: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="main-container">
+        <!-- Header -->
+        <header class="header-nav">
+            <div class="nav-left">
+                <button id="home-btn" class="btn-action" style="padding: 0.5rem 1rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 12H5M12 19l-7-7 7-7" />
+                    </svg>
+                    Back
+                </button>
+            </div>
+            <div class="nav-right">
+                <!-- Could add profile icon or search here -->
+            </div>
+        </header>
+
+        <div class="content-wrapper">
+            <!-- Player -->
+            <section class="player-section">
+                <div class="video-wrapper">
+                    <iframe id="video-player" sandbox="allow-scripts allow-same-origin" allowfullscreen>
+                    </iframe>
+                </div>
+            </section>
+
+            <!-- Info -->
+            <section class="info-section">
+                <div class="title-block">
+                    <h1 id="media-title">Loading...</h1>
+                    <div class="meta-row">
+                        <span id="media-year"></span>
+                        <span class="rating-badge" id="media-rating"></span>
+                        <span id="media-genres"></span>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="like-btn" class="btn-action">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3">
+                            </path>
+                        </svg>
+                        Like
+                    </button>
+                    <button id="dislike-btn" class="btn-action">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17">
+                            </path>
+                        </svg>
+                        Dislike
+                    </button>
+                    <button id="bookmark-btn" class="btn-action">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2-2z"></path>
+                        </svg>
+                        Save
+                    </button>
+                </div>
+
+                <div class="synopsis">
+                    <p id="media-desc"></p>
+                </div>
+
+                <div class="cast-list">
+                    Starring: <span id="media-cast"></span>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Floating Chat -->
+    <button id="chat-toggle-btn" class="floating-chat-toggle" aria-label="Chat">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+    </button>
+
+    <div id="chat-container">
+        <iframe id="chat-iframe" src="chat.html"></iframe>
+    </div>
+
+    <script>
+
+        // Query String Parameters, compatible with old watch page
+        const urlParams = new URLSearchParams(window.location.search);
+        const tmdbId = urlParams.get('tmdbId');
+        const type = urlParams.get('type');
+
+        const player = document.getElementById('video-player');
+        const homeBtn = document.getElementById('home-btn');
+        const bookmarkBtn = document.getElementById('bookmark-btn');
+        const likeBtn = document.getElementById('like-btn');
+        const dislikeBtn = document.getElementById('dislike-btn');
+        const chatToggleBtn = document.getElementById('chat-toggle-btn');
+        const chatContainer = document.getElementById('chat-container');
+
+        // UI Elements
+        const titleEl = document.getElementById('media-title');
+        const yearEl = document.getElementById('media-year');
+        const ratingEl = document.getElementById('media-rating');
+        const genresEl = document.getElementById('media-genres');
+        const descEl = document.getElementById('media-desc');
+        const castEl = document.getElementById('media-cast');
+
+        // --- Metrics & State ---
+        let nowWatching = null;
+        let engagementTimer = null;
+        let loveTimer = null;
+        let favorites = JSON.parse(localStorage.getItem('vidsrc_favorites')) || [];
+
+        // --- Initialization ---
+        (async () => {
+            await window.loadConfig();
+
+            if (tmdbId && type) {
+                // Setup Player
+                let template = type === 'movie'
+                    ? window.AppConfig.playerUrlTemplateMovie
+                    : window.AppConfig.playerUrlTemplateTv;
+
+                const path = template.replace('{tmdbId}', tmdbId);
+                player.src = path;
+
+                // Fetch Metadata
+                initializeSession(tmdbId, type);
+            }
+
+            // Auto-scroll address bar on mobile load
+            if (window.innerWidth <= 768) {
+                window.scrollTo(0, 1);
+            }
+        })();
+
+        async function initializeSession(id, type) {
+            try {
+                // Fetch basic details + credits
+                const response = await fetch(`${window.AppConfig.tmdbBaseUrl}/${type}/${id}?api_key=${window.AppConfig.tmdbApiKey}&append_to_response=credits`);
+                const data = await response.json();
+
+                const title = data.title || data.name;
+                const year = (data.release_date || data.first_air_date || '').split('-')[0];
+                const poster_path = data.poster_path;
+                const rating = data.vote_average ? data.vote_average.toFixed(1) : 'N/A';
+                const genres = data.genres ? data.genres.map(g => g.name) : [];
+                const description = data.overview;
+                const cast = data.credits && data.credits.cast ? data.credits.cast.slice(0, 5).map(c => c.name).join(', ') : '';
+
+                nowWatching = {
+                    id,
+                    type,
+                    title,
+                    year,
+                    poster_path,
+                    rating,
+                    genres,
+                    description,
+                    startTime: Date.now()
+                };
+
+                // Update UI
+                titleEl.textContent = title;
+                yearEl.textContent = year;
+                ratingEl.textContent = `⭐ ${rating}`;
+                genresEl.textContent = genres.join(' • ');
+                descEl.textContent = description;
+                castEl.textContent = cast;
+                document.title = `${title} - Vlix`;
+
+                // Storage & Memory
+                localStorage.setItem('vidsrc_now_watching', JSON.stringify(nowWatching));
+                addLongTermMemory(`User started watching ${nowWatching.title} (${nowWatching.year}) - ${nowWatching.type}. Synopsis: ${nowWatching.description}`);
+
+                // Chat Context
+                const memories = getLongTermMemories(false, "string");
+                const explanation = "The following is a list of key events and interactions for the current user...";
+                const userContext = `${explanation}\n\n${memories}`;
+
+                setTimeout(() => {
+                    injectContext({ type: "setUserContext", payload: userContext }, "#chat-iframe");
+                }, 2500);
+
+                setTimeout(() => {
+                    injectContext({ type: "setApplicationContext", payload: `Currently Watching: User started watching ${nowWatching.title} (${nowWatching.year}) - ${nowWatching.type}` }, "#chat-iframe");
+                }, 3000);
+
+                // Metrics
+                recordMetric('view', nowWatching);
+                engagementTimer = setTimeout(() => recordMetric('engagement', nowWatching), 5 * 60 * 1000);
+                const loveDuration = type === 'movie' ? 60 : 30;
+                loveTimer = setTimeout(() => recordMetric('love', nowWatching), loveDuration * 60 * 1000);
+
+                // Load UI States
+                loadRating();
+                updateBookmarkUI();
+
+            } catch (e) {
+                console.error("Error initializing session", e);
+                titleEl.textContent = "Error loading details";
+            }
+        }
+
+        // --- Interactions ---
+        homeBtn.addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+
+        chatToggleBtn.addEventListener('click', () => {
+            chatContainer.classList.toggle('visible');
+            const isVisible = chatContainer.classList.contains('visible');
+            if (isVisible) {
+                chatToggleBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+            } else {
+                chatToggleBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>';
+            }
+        });
+
+        bookmarkBtn.addEventListener('click', () => toggleBookmark());
+        likeBtn.addEventListener('click', () => toggleRating('like'));
+        dislikeBtn.addEventListener('click', () => toggleRating('dislike'));
+
+        // --- Helper Functions (Reused) ---
+        function recordMetric(metricType, metadata) {
+            const metrics = JSON.parse(localStorage.getItem('vidsrc_metrics')) || [];
+            metrics.push({
+                metric: metricType,
+                timestamp: Date.now(),
+                ...metadata
+            });
+            localStorage.setItem('vidsrc_metrics', JSON.stringify(metrics));
+        }
+
+        function toggleRating(newRating) {
+            let ratings = JSON.parse(localStorage.getItem('vidsrc_ratings')) || [];
+            const index = ratings.findIndex(r => r.id == tmdbId);
+            let currentRating = index !== -1 ? ratings[index].rating : null;
+
+            if (currentRating === newRating) {
+                if (index !== -1) ratings.splice(index, 1);
+                updateRatingUI(null);
+            } else {
+                const ratingEntry = {
+                    id: tmdbId,
+                    type,
+                    rating: newRating,
+                    timestamp: Date.now(),
+                    ...nowWatching
+                };
+                if (index !== -1) ratings[index] = ratingEntry;
+                else ratings.push(ratingEntry);
+                updateRatingUI(newRating);
+            }
+            localStorage.setItem('vidsrc_ratings', JSON.stringify(ratings));
+        }
+
+        function loadRating() {
+            const ratings = JSON.parse(localStorage.getItem('vidsrc_ratings')) || [];
+            const entry = ratings.find(r => r.id == tmdbId);
+            if (entry) updateRatingUI(entry.rating);
+        }
+
+        function updateRatingUI(rating) {
+            likeBtn.classList.remove('active');
+            dislikeBtn.classList.remove('active');
+            if (rating === 'like') likeBtn.classList.add('active');
+            else if (rating === 'dislike') dislikeBtn.classList.add('active');
+        }
+
+        function toggleBookmark() {
+            if (!nowWatching) return;
+            const index = favorites.findIndex(f => f.id == tmdbId);
+            if (index === -1) {
+                favorites.push({
+                    id: tmdbId,
+                    type,
+                    media_type: type,
+                    title: nowWatching.title,
+                    poster_path: nowWatching.poster_path,
+                    year: nowWatching.year,
+                    rating: nowWatching.rating,
+                    genres: nowWatching.genres,
+                    timestamp: Date.now()
+                });
+            } else {
+                favorites.splice(index, 1);
+            }
+            localStorage.setItem('vidsrc_favorites', JSON.stringify(favorites));
+            updateBookmarkUI();
+        }
+
+        function updateBookmarkUI() {
+            const isFav = favorites.some(f => f.id == tmdbId);
+            if (isFav) {
+                bookmarkBtn.classList.add('active');
+                bookmarkBtn.querySelector('svg').setAttribute('fill', 'currentColor');
+            } else {
+                bookmarkBtn.classList.remove('active');
+                bookmarkBtn.querySelector('svg').setAttribute('fill', 'none');
+            }
+        }
+
+        // Cleanup
+        window.addEventListener('beforeunload', () => {
+            clearTimeout(engagementTimer);
+            clearTimeout(loveTimer);
+            localStorage.removeItem('vidsrc_now_watching');
+        });
+    </script>
+</body>
+
+</html>

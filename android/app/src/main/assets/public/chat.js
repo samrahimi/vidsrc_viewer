@@ -133,7 +133,7 @@ const MAX_TURNS_PER_CONVERSATION = 50; // Not really needed thx to compression b
 let turnCount = 0;
 
 function playContent(tmdbId, type) {
-    top.location.href = 'watch.html?tmdbId=' + tmdbId + '&type=' + type;
+    top.location.href = 'stream.html?tmdbId=' + tmdbId + '&type=' + type;
 }
 
 // Fetch genres map for mapping IDs to names

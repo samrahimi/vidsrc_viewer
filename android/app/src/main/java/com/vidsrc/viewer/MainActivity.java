@@ -104,7 +104,7 @@ public class MainActivity extends BridgeActivity {
         
         // Whitelist your specific app pages just to be safe
         if (url.contains("index.html") || 
-            url.contains("watch.html") || 
+            url.contains("stream.html") || 
             url.contains("search.html") || 
             url.contains("home.html")) {
             return true;
