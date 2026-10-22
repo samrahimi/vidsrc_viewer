@@ -1,36 +1,34 @@
 window.AppConfig = {};
 
+// All config comes from settings.json.
+// AI chat and onboarding are turned off there for now so the site can be hosted as a static site.
 window.loadConfig = async function () {
-    let localConfig = {};
-    let remoteConfig = {};
-
-    // 1. Load local settings
     try {
-        const localResponse = await fetch('settings.json');
-        if (localResponse.ok) {
-            localConfig = await localResponse.json();
+        const response = await fetch('settings.json');
+        if (response.ok) {
+            window.AppConfig = await response.json();
         } else {
-            console.warn('Failed to load local settings.json');
+            console.warn('Failed to load settings.json');
         }
     } catch (e) {
-        console.warn('Error loading local settings.json:', e);
+        console.warn('Error loading settings.json:', e);
     }
-
-    // 2. Load remote settings
-    try {
-        const remoteResponse = await fetch('https://vlix.ai/config/settings.json');
-        if (remoteResponse.ok) {
-            remoteConfig = await remoteResponse.json();
-        } else {
-            console.warn('Failed to load remote settings, using local only.');
-        }
-    } catch (e) {
-        console.warn('Error loading remote settings:', e);
-    }
-
-    // 3. Merge: Remote overrides Local
-    window.AppConfig = { ...localConfig, ...remoteConfig };
     console.log('Config loaded:', window.AppConfig);
 
+    window.applyFeatureFlags();
+
     return window.AppConfig;
+};
+
+// Show or hide the AI chat UI. The chat iframe only loads chat.html when the feature is enabled.
+window.applyFeatureFlags = function () {
+    const chatEnabled = !!window.AppConfig.aiChatEnabled;
+    ['#chat-fab', '#chat-toggle-btn', '#chat-iframe-container', '#chat-container'].forEach(sel => {
+        const el = document.querySelector(sel);
+        if (el) el.style.display = chatEnabled ? '' : 'none';
+    });
+    const chatIframe = document.querySelector('#chat-iframe[data-src]');
+    if (chatEnabled && chatIframe && !chatIframe.getAttribute('src')) {
+        chatIframe.src = chatIframe.dataset.src;
+    }
 };

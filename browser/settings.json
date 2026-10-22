@@ -1,6 +1,8 @@
 {
-    "playerUrlTemplateMovie": "https://vidsrc.cc/v2/embed/movie/{tmdbId}",
-    "playerUrlTemplateTv": "https://vidsrc.cc/v2/embed/tv/{tmdbId}",
+    "playerUrlTemplateMovie": "https://play.vlix.ai/embed/movie/{tmdbId}",
+    "playerUrlTemplateTv": "https://play.vlix.ai/embed/tv/{tmdbId}",
+    "aiChatEnabled": false,
+    "onboardingEnabled": false,
     "dailyTokenLimit": 100000,
     "openaiApiKey": "",
     "openaiChatUrl": "https://vlix.ai/.netlify/functions/chat",

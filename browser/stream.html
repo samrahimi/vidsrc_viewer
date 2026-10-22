@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="config.js"></script>
+    <script src="episodes.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.js"
         integrity="sha256-eKhayi8LEQwp4NKxN+CfCh+3qOVUtJn3QNZ0TciWLP4=" crossorigin="anonymous"></script>
     <script src="longTermMemory.js"></script>
@@ -116,6 +117,7 @@
 
         .action-buttons {
             display: flex;
+            flex-wrap: wrap;
             gap: 1rem;
             margin-top: 1rem;
         }
@@ -310,7 +312,7 @@
             <!-- Player -->
             <section class="player-section">
                 <div class="video-wrapper">
-                    <iframe id="video-player" sandbox="allow-scripts allow-same-origin" allowfullscreen>
+                    <iframe id="video-player" allowfullscreen>
                     </iframe>
                 </div>
             </section>
@@ -324,9 +326,18 @@
                         <span class="rating-badge" id="media-rating"></span>
                         <span id="media-genres"></span>
                     </div>
+                    <div id="episode-label" class="episode-label hidden"></div>
                 </div>
 
                 <div class="action-buttons">
+                    <button id="next-episode-btn" class="btn-action btn-next-episode hidden">
+                        Next Episode
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"
+                            stroke="none">
+                            <polygon points="5 4 15 12 5 20 5 4"></polygon>
+                            <rect x="16" y="4" width="3" height="16"></rect>
+                        </svg>
+                    </button>
                     <button id="like-btn" class="btn-action">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -361,12 +372,15 @@
                 <div class="cast-list">
                     Starring: <span id="media-cast"></span>
                 </div>
+
+                <!-- Season & episode browser (series only) -->
+                <div id="episodes-container"></div>
             </section>
         </div>
     </div>
 
     <!-- Floating Chat -->
-    <button id="chat-toggle-btn" class="floating-chat-toggle" aria-label="Chat">
+    <button id="chat-toggle-btn" class="floating-chat-toggle" aria-label="Chat" style="display: none;">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
@@ -374,7 +388,7 @@
     </button>
 
     <div id="chat-container">
-        <iframe id="chat-iframe" src="chat.html"></iframe>
+        <iframe id="chat-iframe" data-src="chat.html"></iframe>
     </div>
 
     <script>
@@ -384,7 +398,15 @@
         const tmdbId = urlParams.get('tmdbId');
         const type = urlParams.get('type');
 
-        const player = document.getElementById('video-player');
+        // Series: the episode to play comes from the URL, else where the user left off, else S1 E1
+        let currentSeason = null;
+        let currentEpisode = null;
+        let tvSeasons = [];
+        let nextEpisodeTarget = null;
+
+        let player = document.getElementById('video-player');
+        // Pages the player iframe navigates through get added to this tab's history; Back skips past them
+        const historyLengthAtLoad = window.history.length;
         const homeBtn = document.getElementById('home-btn');
         const bookmarkBtn = document.getElementById('bookmark-btn');
         const likeBtn = document.getElementById('like-btn');
@@ -412,12 +434,16 @@
 
             if (tmdbId && type) {
                 // Setup Player
-                let template = type === 'movie'
-                    ? window.AppConfig.playerUrlTemplateMovie
-                    : window.AppConfig.playerUrlTemplateTv;
-
-                const path = template.replace('{tmdbId}', tmdbId);
-                player.src = path;
+                if (type === 'tv') {
+                    const progress = Episodes.getProgress(tmdbId);
+                    currentSeason = Number(urlParams.get('season') ?? (progress ? progress.season : 1));
+                    currentEpisode = Number(urlParams.get('episode') ?? (progress ? progress.episode : 1));
+                    player.src = Episodes.playerUrl(tmdbId, currentSeason, currentEpisode);
+                    Episodes.saveProgress(tmdbId, currentSeason, currentEpisode);
+                } else {
+                    const path = window.AppConfig.playerUrlTemplateMovie.replace('{tmdbId}', tmdbId);
+                    player.src = path;
+                }
 
                 // Fetch Metadata
                 initializeSession(tmdbId, type);
@@ -464,8 +490,14 @@
                 castEl.textContent = cast;
                 document.title = `${title} - Vlix`;
 
+                if (type === 'tv') {
+                    tvSeasons = data.seasons || [];
+                    updateEpisodeUI();
+                }
+
                 // Storage & Memory
                 localStorage.setItem('vidsrc_now_watching', JSON.stringify(nowWatching));
+                saveToHistory(nowWatching, data);
                 addLongTermMemory(`User started watching ${nowWatching.title} (${nowWatching.year}) - ${nowWatching.type}. Synopsis: ${nowWatching.description}`);
 
                 // Chat Context
@@ -499,7 +531,13 @@
 
         // --- Interactions ---
         homeBtn.addEventListener('click', () => {
-            window.location.href = 'index.html';
+            // Go back to the exact page (tab, genre, search, details) the user came from when possible
+            const cameFromApp = document.referrer && new URL(document.referrer).origin === window.location.origin;
+            if (cameFromApp && window.history.length > 1) {
+                window.history.go(-1 - Math.max(0, window.history.length - historyLengthAtLoad));
+            } else {
+                window.location.href = 'index.html';
+            }
         });
 
         chatToggleBtn.addEventListener('click', () => {
@@ -513,6 +551,9 @@
         });
 
         bookmarkBtn.addEventListener('click', () => toggleBookmark());
+        document.getElementById('next-episode-btn').addEventListener('click', () => {
+            if (nextEpisodeTarget) playEpisode(nextEpisodeTarget.season, nextEpisodeTarget.episode);
+        });
         likeBtn.addEventListener('click', () => toggleRating('like'));
         dislikeBtn.addEventListener('click', () => toggleRating('dislike'));
 
@@ -525,6 +566,80 @@
                 ...metadata
             });
             localStorage.setItem('vidsrc_metrics', JSON.stringify(metrics));
+        }
+
+        // --- Episodes (series only) ---
+
+        // Switch episodes in place; the URL is replaced so Back still returns to where the user came from
+        function playEpisode(season, episode) {
+            currentSeason = Number(season);
+            currentEpisode = Number(episode);
+
+            // A fresh iframe, because changing src on the existing one adds a history entry
+            const freshPlayer = player.cloneNode(false);
+            freshPlayer.src = Episodes.playerUrl(tmdbId, currentSeason, currentEpisode);
+            player.replaceWith(freshPlayer);
+            player = freshPlayer;
+
+            const params = new URLSearchParams(window.location.search);
+            params.set('season', currentSeason);
+            params.set('episode', currentEpisode);
+            window.history.replaceState(null, '', `?${params}`);
+
+            Episodes.saveProgress(tmdbId, currentSeason, currentEpisode);
+            updateEpisodeUI();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        async function updateEpisodeUI() {
+            const season = currentSeason;
+            const episode = currentEpisode;
+
+            Episodes.render(document.getElementById('episodes-container'), {
+                tvId: tmdbId,
+                seasons: tvSeasons,
+                season,
+                current: { season, episode },
+                currentLabel: 'Now playing',
+                onSelect: playEpisode
+            });
+
+            const label = document.getElementById('episode-label');
+            label.textContent = `S${season} · E${episode}`;
+            label.classList.remove('hidden');
+            try {
+                const seasonData = await Episodes.fetchSeason(tmdbId, season);
+                const ep = (seasonData.episodes || []).find(e => e.episode_number === episode);
+                if (ep && ep.name && season === currentSeason && episode === currentEpisode) {
+                    label.textContent = `S${season} · E${episode} — ${ep.name}`;
+                    document.title = `${nowWatching ? nowWatching.title : 'Watch'} S${season}E${episode} - Vlix`;
+                }
+            } catch (e) { }
+
+            const nextBtn = document.getElementById('next-episode-btn');
+            nextEpisodeTarget = await Episodes.nextEpisode(tmdbId, tvSeasons, season, episode);
+            if (season !== currentSeason || episode !== currentEpisode) return; // switched again meanwhile
+            nextBtn.classList.toggle('hidden', !nextEpisodeTarget);
+            if (nextEpisodeTarget) nextBtn.title = `Season ${nextEpisodeTarget.season}, Episode ${nextEpisodeTarget.episode}`;
+        }
+
+        // Most recent first, one entry per title, capped at 50
+        function saveToHistory(item, details) {
+            const history = JSON.parse(localStorage.getItem('vidsrc_history')) || [];
+            const filtered = history.filter(h => !(h.id == item.id && (h.media_type || h.type) === item.type));
+            filtered.unshift({
+                id: item.id,
+                media_type: item.type,
+                type: item.type,
+                title: item.title,
+                poster_path: item.poster_path,
+                year: item.year,
+                rating: item.rating,
+                vote_average: details.vote_average,
+                genres: details.genres || [],
+                timestamp: Date.now()
+            });
+            localStorage.setItem('vidsrc_history', JSON.stringify(filtered.slice(0, 50)));
         }
 
         function toggleRating(newRating) {

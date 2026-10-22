@@ -3,78 +3,80 @@ const APP_VERSION = '1.2.0'; // Updated by publish script
 // Detect if running in Electron or Android (Native)
 const isElectron = navigator.userAgent.toLowerCase().includes('electron');
 const isAndroid = navigator.userAgent.toLowerCase().includes('android');
-//const isNative = isElectron || isAndroid;
-const isNative = true;
+const isNative = isElectron || isAndroid;
 
 
 // DOM Elements
-const moviesGrid = document.getElementById('trending-movies-grid');
-const showsGrid = document.getElementById('popular-tv-grid');
-const heroSection = document.getElementById('hero-section');
+const viewRoot = document.getElementById('view-root');
 const searchInput = document.getElementById('search-input');
-const searchResultsSection = document.getElementById('search-results-section');
-const searchGrid = document.getElementById('search-grid');
-const closeSearchBtn = document.getElementById('close-search'); // This is the one in the section header, can keep or remove
-const searchClearBtn = document.getElementById('search-clear'); // The new X in the input
+const searchClearBtn = document.getElementById('search-clear');
 const appBadge = document.getElementById('app-badge');
-function getMainContentSections() {
-    return document.querySelectorAll('.media-section:not(#search-results-section):not(#category-view-section), #hero-section, #category-feeds-container');
-}
-
-// Category Elements
-const categoryFeedsContainer = document.getElementById('category-feeds-container');
-const categoryViewSection = document.getElementById('category-view-section');
-const categoryTitle = document.getElementById('category-title');
-const categoryGrid = document.getElementById('category-grid');
-const closeCategoryBtn = document.getElementById('close-category');
-const loadMoreCategoryBtn = document.getElementById('load-more-category');
-const recommendationsSection = document.createElement('section'); // Created dynamically
-recommendationsSection.id = 'recommendations-section';
-recommendationsSection.className = 'media-section hidden';
+const listCountBadge = document.getElementById('list-count');
 
 // State
-let searchTimeout;
-let genres = {};
-let currentCategoryPage = 1;
-let currentCategoryId = null;
-let currentCategoryName = '';
-let isCategoryLoading = false;
+let genres = { movie: {}, tv: {} };
 let favorites = JSON.parse(localStorage.getItem('vidsrc_favorites')) || [];
-let history = JSON.parse(localStorage.getItem('vidsrc_history')) || [];
+// Named watchHistory (not history) so it doesn't shadow window.history, which the router uses
+let watchHistory = JSON.parse(localStorage.getItem('vidsrc_history')) || [];
+const detailsCache = new Map(); // "type:id" -> TMDB details, used for runtimes on hover
 
+// --- Catalog ---
+// Curated collections. Each one can be shown as a row and opened as a full grid at #/collection/<key>.
+const COLLECTIONS = {
+    'trending': { title: 'Trending This Week', path: '/trending/all/week' },
+    'top10-movies': { title: 'Top 10 Movies Today', path: '/trending/movie/day', type: 'movie', top10: true },
+    'top10-tv': { title: 'Top 10 Shows Today', path: '/trending/tv/day', type: 'tv', top10: true },
+    'trending-movies': { title: 'Trending Movies', path: '/trending/movie/week', type: 'movie' },
+    'trending-tv': { title: 'Trending Shows', path: '/trending/tv/week', type: 'tv' },
+    'popular-movies': { title: 'Popular Movies', path: '/movie/popular', type: 'movie' },
+    'popular-tv': { title: 'Popular TV Shows', path: '/tv/popular', type: 'tv' },
+    'now-playing': { title: 'New in Theaters', path: '/movie/now_playing', type: 'movie' },
+    'on-the-air': { title: 'New Episodes This Week', path: '/tv/on_the_air', type: 'tv' },
+    'top-rated-movies': { title: 'Critically Acclaimed Movies', path: '/movie/top_rated', type: 'movie' },
+    'top-rated-tv': { title: 'Critically Acclaimed TV', path: '/tv/top_rated', type: 'tv' }
+};
 
+// TMDB genre IDs differ between movies and TV, so each tab has its own list (in display order).
+const MOVIE_GENRES = [28, 35, 53, 878, 27, 18, 16, 10749, 80, 12, 14, 10751, 9648, 99, 36, 10752, 10402, 37];
+const TV_GENRES = [10759, 35, 80, 18, 10765, 9648, 16, 10764, 99, 10751, 10762, 10768, 37];
 
-// Config
-/* common categories:
-Action          28
-Adventure       12
-Animation       16
-Comedy          35
-Crime           80
-Documentary     99
-Drama           18
-Family          10751
-Fantasy         14
-History         36
-Horror          27
-Music           10402
-Mystery         9648
-Romance         10749
-Science Fiction 878
-TV Movie        10770
-Thriller        53
-War             10752
-Western         37
-*/
+// Rows for each browse page. Strings are collection keys; [type, genreId] pairs are genre rows.
+const PAGES = {
+    home: {
+        hero: { path: '/trending/all/week' },
+        rows: ['top10-movies', 'trending', 'popular-movies', 'popular-tv', 'top10-tv', 'now-playing', 'on-the-air',
+            ['movie', 28], ['tv', 35], 'top-rated-movies', ['movie', 27], ['tv', 80], ['movie', 878], ['tv', 10765],
+            'top-rated-tv', ['movie', 35], ['movie', 16], ['tv', 99]]
+    },
+    movies: {
+        hero: { path: '/trending/movie/day', type: 'movie' },
+        genres: { type: 'movie', ids: MOVIE_GENRES },
+        rows: ['top10-movies', 'popular-movies', 'now-playing', 'trending-movies', 'top-rated-movies',
+            ...MOVIE_GENRES.map(id => ['movie', id])]
+    },
+    tv: {
+        hero: { path: '/trending/tv/day', type: 'tv' },
+        genres: { type: 'tv', ids: TV_GENRES },
+        rows: ['top10-tv', 'popular-tv', 'on-the-air', 'trending-tv', 'top-rated-tv',
+            ...TV_GENRES.map(id => ['tv', id])]
+    }
+};
 
-const CATEGORIES_TO_SHOW = [28, 12, 16, 35, 80, 99, 18, 10751, 14, 36, 27, 10402, 9648, 10749, 878, 10770, 53, 10752, 37]; // Action, Comedy, Drama, Sci-Fi (IDs from TMDB)
+// Sort options for genre grids
+const GENRE_SORTS = {
+    popular: { label: 'Popular', params: () => ({ sort_by: 'popularity.desc' }) },
+    top: { label: 'Top Rated', params: type => ({ sort_by: 'vote_average.desc', 'vote_count.gte': type === 'movie' ? 500 : 200 }) },
+    new: {
+        label: 'Newest', params: type => {
+            const today = new Date().toISOString().split('T')[0];
+            return type === 'movie'
+                ? { sort_by: 'primary_release_date.desc', 'primary_release_date.lte': today, 'vote_count.gte': 20 }
+                : { sort_by: 'first_air_date.desc', 'first_air_date.lte': today, 'vote_count.gte': 20 };
+        }
+    }
+};
 
-// Initialize
-// document.addEventListener('DOMContentLoaded', () => {
-//     initApp();
-// });
-
-// Important: Jquery must be loaded and available to call 
+// Important: Jquery must be loaded and available to call
 $(document).ready(function () {
     initApp();
 
@@ -113,24 +115,27 @@ async function initApp() {
     }
 
     await fetchGenres();
+    setupEventListeners();
+    updateListCount();
 
     // Check Onboarding
     const onboardingCompleted = localStorage.getItem('onboarding_completed');
-    if (!onboardingCompleted) {
+    if (window.AppConfig.onboardingEnabled && !onboardingCompleted) {
         document.getElementById('onboarding-container').classList.remove('hidden');
         document.getElementById('chat-fab').classList.add('hidden'); // Hide chat during onboarding
     } else {
         // Normal flow
-        fetchTrending('movie', 'day');
-        fetchTrending('tv', 'week');
-        renderFavorites();
-        renderHistory();
-        renderRecommendationsFeed();
-        renderCategoryFeeds();
+        renderRoute();
         checkWebBanner(); // Check for web app banner
-    }
 
-    setupEventListeners();
+        // Coming back from the player to a details sheet's history entry reopens that sheet
+        const modalState = window.history.state && window.history.state.modal;
+        if (modalState) {
+            modalPushed = true;
+            modalHash = location.hash;
+            openDetails(modalState.type, modalState.id);
+        }
+    }
 }
 
 function checkWebBanner() {
@@ -215,358 +220,450 @@ function compareVersions(v1, v2) {
 }
 
 function setupEventListeners() {
-    // Tabs
-    const tabs = document.querySelectorAll('.tab');
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            tabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            fetchTrending(tab.dataset.type, tab.dataset.time);
-        });
+    // Routing: every view has its own URL so the back button and deep links work
+    window.addEventListener('hashchange', () => {
+        if (modalPushed) {
+            // Navigating away from an open details sheet
+            modalPushed = false;
+            hideModal();
+        }
+        renderRoute();
+    });
+    window.addEventListener('popstate', (e) => {
+        const modalState = e.state && e.state.modal;
+        if (modalPushed && !modalState) {
+            // Back button while the details sheet is open closes the sheet
+            modalPushed = false;
+            hideModal();
+        } else if (modalState && !modalPushed) {
+            // Forward button back onto a details sheet's entry reopens it
+            modalPushed = true;
+            modalHash = location.hash;
+            openDetails(modalState.type, modalState.id);
+        }
     });
 
     // Search
+    let searchTimeout;
     searchInput.addEventListener('input', (e) => {
         clearTimeout(searchTimeout);
         const query = e.target.value.trim();
+        searchClearBtn.classList.toggle('hidden', query.length === 0);
 
-        if (query.length > 0) {
-            searchClearBtn.classList.remove('hidden');
-        } else {
-            searchClearBtn.classList.add('hidden');
-        }
-
-        if (query.length > 2) {
-            searchTimeout = setTimeout(() => handleSearch(query), 500);
-        } else if (query.length === 0) {
-            closeSearch();
+        if (query.length > 1) {
+            searchTimeout = setTimeout(() => {
+                const hash = `#/search?q=${encodeURIComponent(query)}`;
+                // Typing refines the current search instead of adding a history entry per keystroke
+                navigate(hash, { replace: parseRoute().name === 'search' });
+            }, 350);
+        } else if (query.length === 0 && parseRoute().name === 'search') {
+            leaveSearch();
         }
     });
-
-    closeSearchBtn.addEventListener('click', closeSearch);
+    searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            searchInput.value = '';
+            searchClearBtn.classList.add('hidden');
+            searchInput.blur();
+            if (parseRoute().name === 'search') leaveSearch();
+        }
+    });
     searchClearBtn.addEventListener('click', () => {
         searchInput.value = '';
         searchClearBtn.classList.add('hidden');
-        closeSearch();
+        if (parseRoute().name === 'search') leaveSearch();
         searchInput.focus();
     });
 
-    // Category View
-    closeCategoryBtn.addEventListener('click', closeCategoryView);
-    loadMoreCategoryBtn.addEventListener('click', loadMoreCategory);
+    // Keyboard shortcuts: "/" focuses search, Escape closes the details sheet
+    document.addEventListener('keydown', (e) => {
+        const typing = ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName);
+        if (e.key === '/' && !typing) {
+            e.preventDefault();
+            searchInput.focus();
+            searchInput.select();
+        } else if (e.key === 'Escape' && !document.getElementById('modal-overlay').classList.contains('hidden')) {
+            closeModal();
+        }
+    });
 
-
-
-    // History
-
-    /* We need to rethink how we handle history in the UI... for now we will hide it, and quietly log history to build context for the AI
-
-
-    document.getElementById('history-btn').addEventListener('click', () => {
-        const histSection = document.getElementById('history-section');
-        histSection.classList.remove('hidden');
-        histSection.scrollIntoView({ behavior: 'smooth' });
-        histSection.scrollIntoView({ behavior: 'smooth' });
-    }) */
+    document.getElementById('surprise-btn').addEventListener('click', surpriseMe);
 
     // Onboarding Listener
     window.addEventListener('message', (event) => {
         if (event.data.type === 'closeOnboarding') {
             document.getElementById('onboarding-container').classList.add('hidden');
             document.getElementById('chat-fab').classList.remove('hidden'); // Show chat after onboarding
-            // Initialize main content if not already done (or just refresh feeds)
-            fetchTrending('movie', 'day');
-            fetchTrending('tv', 'week');
-            renderFavorites();
-            renderHistory();
-            renderRecommendationsFeed();
-            renderCategoryFeeds();
+            renderRoute();
         }
     });
 }
 
-async function fetchTrending(type, timeWindow) {
-    const grid = type === 'movie' ? moviesGrid : showsGrid;
-    showLoading(grid);
-
-    try {
-        const response = await fetch(`${window.AppConfig.tmdbBaseUrl}/trending/${type}/${timeWindow}?with_original_language=en&api_key=${window.AppConfig.tmdbApiKey}`);
-        const data = await response.json();
-
-        if (type === 'movie' && timeWindow === 'day') {
-            updateHero(data.results[0]);
-        }
-
-        renderGrid(data.results, grid, type);
-    } catch (error) {
-        console.error('Error fetching trending:', error);
-        grid.innerHTML = '<p class="error">Failed to load content.</p>';
-    }
+// Clearing the search returns to whatever page you searched from
+function leaveSearch() {
+    navigate(lastNonSearchHash, { replace: true });
 }
 
-async function handleSearch(query) {
-    // Hide main content
-    getMainContentSections().forEach(el => el.classList.add('hidden'));
+// --- TMDB ---
 
-    showLoading(searchGrid);
-    searchResultsSection.classList.remove('hidden');
-    // Scroll to top since we are hiding everything else
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-
-    try {
-        const response = await fetch(`${window.AppConfig.tmdbBaseUrl}/search/multi?api_key=${window.AppConfig.tmdbApiKey}&query=${encodeURIComponent(query)}`);
-        const data = await response.json();
-
-        const filteredResults = data.results.filter(item => item.media_type === 'movie' || item.media_type === 'tv');
-        renderGrid(filteredResults, searchGrid, null); // Type is in the item
-    } catch (error) {
-        console.error('Error searching:', error);
-        searchGrid.innerHTML = '<p class="error">Search failed.</p>';
-    }
+async function tmdb(path, params = {}) {
+    const url = new URL(`${window.AppConfig.tmdbBaseUrl}${path}`);
+    url.searchParams.set('api_key', window.AppConfig.tmdbApiKey);
+    Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`TMDB ${response.status} for ${path}`);
+    return response.json();
 }
-
-function closeSearch() {
-    searchResultsSection.classList.add('hidden');
-    searchGrid.innerHTML = '';
-
-    // Show main content again
-    // Show main content again
-    getMainContentSections().forEach(el => el.classList.remove('hidden'));
-    updateForYouVisibility();
-}
-
-// --- Category Logic ---
 
 async function fetchGenres() {
     try {
-        const response = await fetch(`${window.AppConfig.tmdbBaseUrl}/genre/movie/list?api_key=${window.AppConfig.tmdbApiKey}`);
-        const data = await response.json();
-        data.genres.forEach(g => genres[g.id] = g.name);
+        const [movieData, tvData] = await Promise.all([tmdb('/genre/movie/list'), tmdb('/genre/tv/list')]);
+        movieData.genres.forEach(g => genres.movie[g.id] = g.name);
+        tvData.genres.forEach(g => genres.tv[g.id] = g.name);
     } catch (error) {
         console.error('Error fetching genres:', error);
     }
 }
 
-async function renderCategoryFeeds() {
-    for (const genreId of CATEGORIES_TO_SHOW) {
-        // Create section structure
-        const section = document.createElement('section');
-        section.className = 'media-section';
-        section.innerHTML = `
-            <div class="section-header">
-                <h2>${genres[genreId] || 'Category'} Movies</h2>
-                <a href="#" class="view-more" data-id="${genreId}">View More</a>
-            </div>
-            <div class="media-grid" id="category-grid-${genreId}"></div>
-        `;
-        categoryFeedsContainer.appendChild(section);
-
-        // Add event listener to View More
-        section.querySelector('.view-more').addEventListener('click', (e) => {
-            e.preventDefault();
-            openCategoryView(genreId, genres[genreId]);
-        });
-
-        // Fetch and render preview (first 5 items)
-        try {
-            const response = await fetch(`${window.AppConfig.tmdbBaseUrl}/discover/movie?api_key=${window.AppConfig.tmdbApiKey}&with_genres=${genreId}&sort_by=popularity.desc&with_original_language=en&page=1`);
-            const data = await response.json();
-            const previewItems = data.results.slice(0, 14); // Show top 14
-            const grid = section.querySelector(`#category-grid-${genreId}`);
-            renderGrid(previewItems, grid, 'movie');
-        } catch (error) {
-            console.error(`Error fetching category ${genreId}:`, error);
-        }
-    }
+function genreName(type, id) {
+    return genres[type][id] || genres.movie[id] || genres.tv[id] || 'Genre';
 }
 
-// --- Recommendations Feed ---
-function renderRecommendationsFeed() {
-    const recs = JSON.parse(localStorage.getItem('vidsrc_recommendations'));
-    if (!recs || recs.length === 0) return;
-
-    // Insert after hero, before for-you or trending
-    // We'll insert it before foryou-container
-    const forYouContainer = document.getElementById('foryou-container');
-    if (!document.getElementById('recommendations-section')) {
-        forYouContainer.parentNode.insertBefore(recommendationsSection, forYouContainer);
-    }
-
-    recommendationsSection.classList.remove('hidden');
-    recommendationsSection.innerHTML = `
-        <div class="section-header">
-            <h2>You Might Like</h2>
-            <a href="#" id="view-all-recs" class="view-more">View More</a>
-        </div>
-        <div class="media-grid" id="recommendations-grid"></div>
-    `;
-
-    const grid = recommendationsSection.querySelector('#recommendations-grid');
-    renderGrid(recs.slice(0, 21), grid, null);
-
-    document.getElementById('view-all-recs').addEventListener('click', (e) => {
-        e.preventDefault();
-        openStaticCategoryView('Recommended for You', recs);
-    });
+function genreTitle(type, id) {
+    return `${genreName(type, id)} ${type === 'movie' ? 'Movies' : 'Shows'}`;
 }
 
-let staticCategoryItems = [];
-let staticCategoryPage = 1;
-
-function openStaticCategoryView(title, items) {
-    // Hide main content
-    getMainContentSections().forEach(el => el.classList.add('hidden'));
-    if (recommendationsSection) recommendationsSection.classList.add('hidden');
-
-    // Reset state
-    staticCategoryItems = items;
-    staticCategoryPage = 1;
-    categoryGrid.innerHTML = '';
-    categoryTitle.textContent = title;
-    loadMoreCategoryBtn.classList.remove('hidden');
-    loadMoreCategoryBtn.textContent = 'Load More';
-    loadMoreCategoryBtn.disabled = false;
-
-    // Show section
-    categoryViewSection.classList.remove('hidden');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-
-    // Add scroll listener for infinite scroll
-    window.removeEventListener('scroll', handleInfiniteScroll); // Remove API scroll
-    window.addEventListener('scroll', handleStaticInfiniteScroll);
-
-    // Load first page
-    loadStaticCategoryPage();
+// Discover query for a genre row or grid. English-language titles, with a vote floor to skip obscure entries.
+function genreQuery(type, id, sort = 'popular') {
+    return {
+        path: `/discover/${type}`,
+        params: { with_genres: id, with_original_language: 'en', 'vote_count.gte': 20, ...GENRE_SORTS[sort].params(type) }
+    };
 }
 
-function loadStaticCategoryPage() {
-    const ITEMS_PER_PAGE = 20;
-    const start = (staticCategoryPage - 1) * ITEMS_PER_PAGE;
-    const end = start + ITEMS_PER_PAGE;
-    const pageItems = staticCategoryItems.slice(start, end);
+// --- Router ---
 
-    renderGrid(pageItems, categoryGrid, null, staticCategoryPage > 1);
+let modalPushed = false; // true while an open details sheet has its own history entry
+let modalHash = '';
+const pageCache = {}; // Browse pages (home/movies/tv) are kept alive so going back is instant
+const scrollPositions = {};
+let currentRouteKey = null;
+let lastNonSearchHash = '#/';
+let hasInAppHistory = false; // false when the user landed directly on this URL
 
-    if (end >= staticCategoryItems.length) {
-        loadMoreCategoryBtn.classList.add('hidden');
+function parseRoute() {
+    const raw = location.hash.replace(/^#/, '') || '/';
+    const [path, query = ''] = raw.split('?');
+    const parts = path.split('/').filter(Boolean);
+    const params = new URLSearchParams(query);
+    const name = parts[0] || 'home';
+    return { name, parts, params, key: raw };
+}
+
+function navigate(hash, { replace = false } = {}) {
+    if (replace) {
+        window.history.replaceState(null, '', hash);
+        renderRoute();
+    } else if (location.hash === hash) {
+        renderRoute();
     } else {
-        staticCategoryPage++;
-        loadMoreCategoryBtn.textContent = 'Load More';
+        location.hash = hash;
     }
 }
 
-function handleStaticInfiniteScroll() {
-    if (loadMoreCategoryBtn.classList.contains('hidden')) return;
+function renderRoute() {
+    const route = parseRoute();
 
-    const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-    if (scrollTop + clientHeight >= scrollHeight - 500) {
-        loadStaticCategoryPage();
+    // Remember where we were on the page we're leaving
+    if (currentRouteKey) {
+        scrollPositions[currentRouteKey] = window.scrollY;
+        hasInAppHistory = true;
     }
-}
+    currentRouteKey = route.key;
+    if (route.name !== 'search') lastNonSearchHash = '#' + route.key;
 
-async function openCategoryView(genreId, genreName) {
-    // Hide main content
-    getMainContentSections().forEach(el => el.classList.add('hidden'));
+    // Nav state
+    const navName = ['home', 'movies', 'tv', 'list', 'history'].includes(route.name) ? route.name
+        : route.name === 'genre' ? (route.parts[1] === 'tv' ? 'tv' : 'movies') : null;
+    document.querySelectorAll('[data-nav]').forEach(a => a.classList.toggle('active', a.dataset.nav === navName));
 
-    // Reset state
-    currentCategoryId = genreId;
-    currentCategoryName = genreName;
-    currentCategoryPage = 1;
-    categoryGrid.innerHTML = '';
-    categoryTitle.textContent = `${genreName} Movies`;
-    loadMoreCategoryBtn.classList.remove('hidden');
-    loadMoreCategoryBtn.textContent = 'Load More';
-    loadMoreCategoryBtn.disabled = false;
+    if (route.name !== 'search' && document.activeElement !== searchInput) {
+        searchInput.value = '';
+        searchClearBtn.classList.add('hidden');
+    }
 
-    // Show section
-    categoryViewSection.classList.remove('hidden');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Hide everything, then show or build the target view
+    Array.from(viewRoot.children).forEach(child => child.classList.add('hidden'));
 
-    // Add scroll listener for infinite scroll
-    window.addEventListener('scroll', handleInfiniteScroll);
-
-    // Load first page
-    await loadCategoryPage();
-}
-
-async function loadCategoryPage() {
-    if (isCategoryLoading) return;
-    isCategoryLoading = true;
-    loadMoreCategoryBtn.textContent = 'Loading...';
-
-    try {
-        const response = await fetch(`${window.AppConfig.tmdbBaseUrl}/discover/movie?api_key=${window.AppConfig.tmdbApiKey}&with_genres=${currentCategoryId}&sort_by=popularity.desc&page=${currentCategoryPage}`);
-        const data = await response.json();
-
-        const shouldAppend = currentCategoryPage > 1;
-        renderGrid(data.results, categoryGrid, 'movie', shouldAppend);
-
-        if (currentCategoryPage >= data.total_pages) {
-            loadMoreCategoryBtn.classList.add('hidden');
-        } else {
-            currentCategoryPage++;
-            loadMoreCategoryBtn.textContent = 'Load More';
+    let view;
+    if (PAGES[route.name] && route.parts.length <= 1) {
+        view = pageCache[route.name];
+        if (!view) {
+            view = buildBrowsePage(route.name);
+            pageCache[route.name] = view;
+            viewRoot.appendChild(view);
         }
-    } catch (error) {
-        console.error('Error loading category page:', error);
-        loadMoreCategoryBtn.textContent = 'Error loading more';
-    } finally {
-        isCategoryLoading = false;
+        view.classList.remove('hidden');
+    } else {
+        // Transient views are rebuilt every time
+        viewRoot.querySelectorAll('.transient-view').forEach(v => v.remove());
+        view = document.createElement('div');
+        view.className = 'transient-view';
+        viewRoot.appendChild(view);
+
+        switch (route.name) {
+            case 'collection': renderCollectionView(view, route.parts[1]); break;
+            case 'genre': renderGenreView(view, route.parts[1], route.parts[2], route.params.get('sort') || 'popular'); break;
+            case 'search': renderSearchView(view, route.params.get('q') || '', route.params.get('type') || 'all'); break;
+            case 'list': renderListView(view, route.params.get('type') || 'all'); break;
+            case 'history': renderHistoryView(view, route.params.get('type') || 'all'); break;
+            case 'recommended': renderRecommendedView(view); break;
+            default: navigate('#/', { replace: true }); return;
+        }
     }
+
+    const savedScroll = scrollPositions[route.key];
+    window.scrollTo(0, savedScroll && PAGES[route.name] ? savedScroll : 0);
 }
 
-async function loadMoreCategory() {
-    await loadCategoryPage();
-}
+// --- Browse pages (Home / Movies / TV) ---
 
-function closeCategoryView() {
-    categoryViewSection.classList.add('hidden');
-    categoryGrid.innerHTML = '';
-    getMainContentSections().forEach(el => el.classList.remove('hidden'));
-    updateForYouVisibility();
-    // Recommendations are now handled by getMainContentSections if they are in the DOM
-    window.removeEventListener('scroll', handleInfiniteScroll);
-    window.removeEventListener('scroll', handleStaticInfiniteScroll);
-}
+function buildBrowsePage(name) {
+    const config = PAGES[name];
+    const page = document.createElement('div');
+    page.className = 'browse-page';
+    page.dataset.page = name;
 
-function handleInfiniteScroll() {
-    if (isCategoryLoading || loadMoreCategoryBtn.classList.contains('hidden')) return;
+    page.appendChild(buildHero(config.hero));
 
-    const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-    if (scrollTop + clientHeight >= scrollHeight - 500) { // Load when near bottom
-        loadCategoryPage();
+    if (config.genres) {
+        const chips = document.createElement('div');
+        chips.className = 'genre-chips';
+        chips.innerHTML = config.genres.ids
+            .map(id => `<a class="chip" href="#/genre/${config.genres.type}/${id}">${esc(genreName(config.genres.type, id))}</a>`)
+            .join('');
+        page.appendChild(chips);
     }
+
+    // AI recommendations (saved by the chat feature) get the first row when present
+    if (name === 'home') {
+        const recs = JSON.parse(localStorage.getItem('vidsrc_recommendations') || 'null');
+        if (recs && recs.length) {
+            page.appendChild(buildRow({ title: 'Recommended for You', viewAll: '#/recommended', items: recs }));
+        }
+    }
+
+    config.rows.forEach(row => {
+        if (Array.isArray(row)) {
+            const [type, id] = row;
+            page.appendChild(buildRow({ title: genreTitle(type, id), type, viewAll: `#/genre/${type}/${id}`, ...genreQuery(type, id) }));
+        } else {
+            const c = COLLECTIONS[row];
+            page.appendChild(buildRow({ ...c, viewAll: c.top10 ? null : `#/collection/${row}` }));
+        }
+    });
+
+    return page;
 }
 
-function updateHero(item) {
-    if (!item) return;
+// --- Hero carousel ---
 
-    const backdropUrl = item.backdrop_path ? `${window.AppConfig.tmdbImageOriginalUrl}${item.backdrop_path}` : '';
-    const title = item.title || item.name;
-    const desc = item.overview;
-    const year = (item.release_date || item.first_air_date || '').split('-')[0];
-    const rating = item.vote_average ? item.vote_average.toFixed(1) : 'N/A';
-    const type = item.media_type || 'movie'; // Default to movie for hero if unknown, but trending usually has it
+function buildHero({ path, type }) {
+    const hero = document.createElement('section');
+    hero.className = 'hero-carousel loading';
+    hero.innerHTML = '<div class="hero-slides"></div><div class="hero-dots"></div>';
 
-    heroSection.style.backgroundImage = `url('${backdropUrl}')`;
-    heroSection.classList.remove('hidden');
+    (async () => {
+        try {
+            const data = await tmdb(path);
+            const items = data.results
+                .filter(i => i.backdrop_path && (type || i.media_type === 'movie' || i.media_type === 'tv'))
+                .slice(0, 6);
+            if (!items.length) return hero.remove();
 
-    heroSection.innerHTML = `
-        <div class="hero-overlay"></div>
-        <div class="hero-content">
-            <h1 class="hero-title">${title}</h1>
-            <div class="hero-meta">
-                <span>${year}</span>
-                <span>⭐ ${rating}</span>
-                <span style="text-transform: capitalize;">${type}</span>
-            </div>
-            <p class="hero-desc">${desc}</p>
-            <a href="#" onclick="playContent('${item.id}', '${type}'); return false;" class="btn-primary">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                Watch Now
-            </a>
+            const slides = hero.querySelector('.hero-slides');
+            const dots = hero.querySelector('.hero-dots');
+
+            items.forEach((item, i) => {
+                const itemType = type || item.media_type;
+                const title = item.title || item.name;
+                const year = (item.release_date || item.first_air_date || '').split('-')[0];
+                const rating = item.vote_average ? item.vote_average.toFixed(1) : null;
+                const genreList = (item.genre_ids || []).slice(0, 3).map(id => genreName(itemType, id)).join(' · ');
+
+                const slide = document.createElement('div');
+                slide.className = 'hero-slide' + (i === 0 ? ' active' : '');
+                slide.innerHTML = `
+                    <div class="hero-backdrop" style="background-image: url('${window.AppConfig.tmdbImageOriginalUrl}${item.backdrop_path}')"></div>
+                    <div class="hero-shade"></div>
+                    <div class="hero-content">
+                        <div class="hero-kicker">${itemType === 'tv' ? 'Series' : 'Movie'} · #${i + 1} Trending</div>
+                        <h1 class="hero-title">${esc(title)}</h1>
+                        <div class="hero-meta">
+                            ${year ? `<span>${year}</span>` : ''}
+                            ${rating ? `<span class="rating">★ ${rating}</span>` : ''}
+                            ${genreList ? `<span>${esc(genreList)}</span>` : ''}
+                        </div>
+                        <p class="hero-desc">${esc(item.overview)}</p>
+                        <div class="hero-buttons">
+                            <button class="btn-primary hero-play">${ICONS.play} Play</button>
+                            <button class="btn-glass hero-info">${ICONS.info} More Info</button>
+                            <button class="btn-glass btn-round hero-fav" data-fav-key="${itemType}:${item.id}" aria-label="Add to My List">${favIcon(item.id, itemType)}</button>
+                        </div>
+                    </div>
+                `;
+                slide.querySelector('.hero-play').addEventListener('click', () => playContent(item.id, itemType));
+                slide.querySelector('.hero-info').addEventListener('click', () => openDetails(itemType, item.id));
+                slide.querySelector('.hero-fav').addEventListener('click', () => toggleFavoriteItem(item, itemType));
+                slides.appendChild(slide);
+
+                const dot = document.createElement('button');
+                dot.className = 'hero-dot' + (i === 0 ? ' active' : '');
+                dot.setAttribute('aria-label', `Show ${title}`);
+                dot.addEventListener('click', () => showSlide(i, true));
+                dots.appendChild(dot);
+
+                // Swap the text title for the official title logo when TMDB has one
+                tmdb(`/${itemType}/${item.id}/images`, { include_image_language: 'en,null' }).then(images => {
+                    const logo = (images.logos || []).find(l => l.iso_639_1 === 'en') || (images.logos || [])[0];
+                    if (!logo) return;
+                    const img = new Image();
+                    img.className = 'hero-logo';
+                    img.alt = title;
+                    img.onload = () => slide.querySelector('.hero-title').replaceChildren(img);
+                    img.src = `https://image.tmdb.org/t/p/w500${logo.file_path}`;
+                }).catch(() => { });
+            });
+
+            hero.classList.remove('loading');
+
+            let current = 0;
+            let timer;
+            const showSlide = (index, userInitiated = false) => {
+                current = (index + items.length) % items.length;
+                slides.querySelectorAll('.hero-slide').forEach((s, i) => s.classList.toggle('active', i === current));
+                dots.querySelectorAll('.hero-dot').forEach((d, i) => d.classList.toggle('active', i === current));
+                if (userInitiated) restart();
+            };
+            const restart = () => {
+                clearInterval(timer);
+                timer = setInterval(() => {
+                    // Only rotate while visible and not being hovered
+                    if (hero.offsetParent && !hero.matches(':hover') && document.visibilityState === 'visible') showSlide(current + 1);
+                }, 8000);
+            };
+            restart();
+
+            // Swipe between slides on touch screens
+            let touchX = null;
+            hero.addEventListener('touchstart', e => touchX = e.touches[0].clientX, { passive: true });
+            hero.addEventListener('touchend', e => {
+                if (touchX === null) return;
+                const dx = e.changedTouches[0].clientX - touchX;
+                if (Math.abs(dx) > 50) showSlide(current + (dx < 0 ? 1 : -1), true);
+                touchX = null;
+            });
+        } catch (error) {
+            console.error('Error building hero:', error);
+            hero.remove();
+        }
+    })();
+
+    return hero;
+}
+
+// --- Rows ---
+
+// A horizontally scrolling row. Content loads when the row scrolls near the viewport.
+function buildRow({ title, path, params = {}, type, viewAll, top10 = false, items = null }) {
+    const row = document.createElement('section');
+    row.className = 'media-row' + (top10 ? ' top10-row' : '');
+    row.innerHTML = `
+        <div class="row-header">
+            <h2>${esc(title)}</h2>
+            ${viewAll ? `<a class="view-all" href="${viewAll}">View all <span aria-hidden="true">›</span></a>` : ''}
+        </div>
+        <div class="row-scroller">
+            <button class="row-arrow left" aria-label="Scroll left">‹</button>
+            <div class="row-track">${skeletons(8)}</div>
+            <button class="row-arrow right" aria-label="Scroll right">›</button>
         </div>
     `;
+
+    const track = row.querySelector('.row-track');
+    const left = row.querySelector('.row-arrow.left');
+    const right = row.querySelector('.row-arrow.right');
+    const updateArrows = () => {
+        left.classList.toggle('disabled', track.scrollLeft < 10);
+        right.classList.toggle('disabled', track.scrollLeft + track.clientWidth >= track.scrollWidth - 10);
+    };
+    left.addEventListener('click', () => track.scrollBy({ left: -track.clientWidth * 0.85, behavior: 'smooth' }));
+    right.addEventListener('click', () => track.scrollBy({ left: track.clientWidth * 0.85, behavior: 'smooth' }));
+    track.addEventListener('scroll', updateArrows, { passive: true });
+
+    const fill = (results) => {
+        const mixed = !type;
+        const list = top10 ? results.slice(0, 10) : results;
+        track.innerHTML = '';
+        list.forEach((item, i) => {
+            const card = createCard(item, { type, mixed, rank: top10 ? i + 1 : null });
+            if (card) track.appendChild(card);
+        });
+        if (!track.children.length) row.remove();
+        updateArrows();
+    };
+
+    if (items) {
+        fill(items);
+    } else {
+        lazyLoad(row, async () => {
+            try {
+                const data = await tmdb(path, params);
+                fill(data.results || []);
+            } catch (error) {
+                console.error(`Error loading row "${title}":`, error);
+                row.remove();
+            }
+        });
+    }
+
+    return row;
+}
+
+const lazyObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        lazyObserver.unobserve(entry.target);
+        const load = entry.target._lazyLoad;
+        delete entry.target._lazyLoad;
+        if (load) load();
+    });
+}, { rootMargin: '600px 0px' });
+
+function lazyLoad(el, load) {
+    el._lazyLoad = load;
+    lazyObserver.observe(el);
+}
+
+function skeletons(n) {
+    return '<div class="loading-skeleton"></div>'.repeat(n);
+}
+
+// --- Cards ---
+
+const ICONS = {
+    play: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>',
+    info: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>',
+    bookmark: (filled) => `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="${filled ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>`,
+    film: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>'
+};
+
+function esc(value) {
+    return String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function favIcon(id, type) {
+    return ICONS.bookmark(isFavorite(id, type));
 }
 
 function safeExtractItemData(item, forcedType) {
@@ -575,19 +672,19 @@ function safeExtractItemData(item, forcedType) {
         const type = forcedType || item.media_type || item.type || 'movie';
         const title = item.title || item.name || 'Unknown Title';
 
-        let year = 'N/A';
+        let year = '';
         const rawDate = item.release_date || item.first_air_date || item.year;
         if (rawDate) {
             year = String(rawDate).split('-')[0];
         }
 
-        let rating = 'N/A';
+        let rating = '';
         // Handle vote_average (number) or rating (string/number)
         const rawRating = item.vote_average !== undefined ? item.vote_average : item.rating;
         if (rawRating !== undefined && rawRating !== null && rawRating !== 'N/A') {
             const num = Number(rawRating);
             if (!isNaN(num)) {
-                rating = num.toFixed(1);
+                rating = num > 0 ? num.toFixed(1) : '';
             } else {
                 rating = String(rawRating); // Fallback to string if it's not a valid number but exists
             }
@@ -606,7 +703,7 @@ function safeExtractItemData(item, forcedType) {
                 }
             }
         } else if (item.genre_ids && Array.isArray(item.genre_ids)) {
-            genresStr = item.genre_ids.slice(0, 2).map(id => genres[id]).filter(Boolean).join(', ');
+            genresStr = item.genre_ids.slice(0, 2).map(id => genres[type][id]).filter(Boolean).join(', ');
         }
 
         return { id, type, title, year, rating, posterUrl, genresStr };
@@ -616,167 +713,436 @@ function safeExtractItemData(item, forcedType) {
     }
 }
 
-function renderGrid(items, container, forcedType, shouldAppend = false) {
-    if (!shouldAppend) {
-        container.innerHTML = '';
+// Poster card. Click opens details; hover reveals quick Play and My List buttons.
+function createCard(item, { type, mixed = false, rank = null } = {}) {
+    if (!item) return null;
+    const data = safeExtractItemData(item, type);
+    if (!data || !data.posterUrl) return null;
+    if (data.type !== 'movie' && data.type !== 'tv') return null;
+
+    const { id, title, year, rating, posterUrl, genresStr } = data;
+    const itemType = data.type;
+    const key = `${itemType}:${id}`;
+
+    const card = document.createElement('div');
+    card.className = 'media-card';
+    card.tabIndex = 0;
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-label', title);
+    card.innerHTML = `
+        <img src="${posterUrl}" alt="" class="card-poster" loading="lazy">
+        ${mixed && itemType === 'tv' ? '<span class="type-badge">Series</span>' : ''}
+        <div class="card-overlay">
+            <div class="card-buttons">
+                <button class="card-btn card-play" aria-label="Play ${esc(title)}">${ICONS.play}</button>
+                <button class="card-btn card-fav" data-fav-key="${key}" aria-label="Add to My List">${favIcon(id, itemType)}</button>
+            </div>
+            <h3 class="card-title">${esc(title)}</h3>
+            <div class="card-meta">
+                <span>${year}</span>
+                ${rating ? `<span class="rating">★ ${rating}</span>` : ''}
+                <span class="card-runtime"></span>
+            </div>
+            <div class="card-genres">${esc(genresStr)}</div>
+        </div>
+    `;
+
+    card.addEventListener('click', () => openDetails(itemType, id));
+    card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && e.target === card) openDetails(itemType, id);
+    });
+    card.querySelector('.card-play').addEventListener('click', (e) => {
+        e.stopPropagation();
+        playContent(id, itemType);
+    });
+    card.querySelector('.card-fav').addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleFavoriteItem(item, itemType);
+    });
+    // Runtime is fetched on first hover only, instead of one request per card up front
+    card.addEventListener('mouseenter', () => fillRuntime(card, itemType, id), { once: true });
+
+    if (rank) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'ranked-card';
+        wrapper.innerHTML = `<span class="rank-number" aria-hidden="true">${rank}</span>`;
+        wrapper.appendChild(card);
+        return wrapper;
     }
+    return card;
+}
 
-    if (!items || !Array.isArray(items)) {
-        console.error("renderGrid called with invalid items:", items);
-        return;
+async function getDetails(type, id) {
+    const key = `${type}:${id}`;
+    if (!detailsCache.has(key)) {
+        detailsCache.set(key, tmdb(`/${type}/${id}`, {
+            append_to_response: 'credits,videos,recommendations,images',
+            include_image_language: 'en,null'
+        }).catch(e => { detailsCache.delete(key); throw e; }));
     }
+    return detailsCache.get(key);
+}
 
-    items.forEach(item => {
-        try {
-            if (!item) return;
+function formatRuntime(type, data) {
+    if (type === 'movie') {
+        if (!data.runtime) return '';
+        const h = Math.floor(data.runtime / 60);
+        const m = data.runtime % 60;
+        return h ? `${h}h ${m}m` : `${m}m`;
+    }
+    if (data.number_of_seasons) return `${data.number_of_seasons} Season${data.number_of_seasons > 1 ? 's' : ''}`;
+    return '';
+}
 
-            const data = safeExtractItemData(item, forcedType);
-            if (!data || !data.posterUrl) return; // Skip invalid or missing poster
+async function fillRuntime(card, type, id) {
+    try {
+        const data = await getDetails(type, id);
+        card.querySelector('.card-runtime').textContent = formatRuntime(type, data);
+    } catch (e) { }
+}
 
-            const { id, type, title, year, rating, posterUrl, genresStr } = data;
+// --- Grid views ---
 
-            const card = document.createElement('div');
-            card.className = 'media-card';
-            card.onclick = () => playContent(id, type);
+function gridHeader(title, { back = true, extra = '' } = {}) {
+    return `
+        <div class="view-header">
+            ${back ? `<button class="btn-icon view-back" aria-label="Back">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            </button>` : ''}
+            <h1>${esc(title)}</h1>
+            ${extra}
+        </div>
+    `;
+}
 
-            card.innerHTML = `
-                <img src="${posterUrl}" alt="${title}" class="card-poster" loading="lazy">
-                <div class="card-actions">
-                    <button class="btn-icon-small fav-btn ${isFavorite(id) ? 'active' : ''}" onclick="event.stopPropagation(); toggleFavorite('${id}', '${type}', '${encodeURIComponent(title)}', '${item.poster_path}', '${year}', '${rating}')">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="${isFavorite(id) ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2-2z"></path>
-                        </svg>
-                    </button>
-                    <button class="btn-icon-small info-btn" onclick="event.stopPropagation(); openInfoModal('${id}', '${type}')">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                    </button>
-                </div>
-                <div class="card-overlay">
-                    <h3 class="card-title">${title}</h3>
-                    <div class="card-meta">
-                        <span>${year}</span>
-                        <span class="rating">⭐ ${rating}</span>
-                    </div>
-                    <div class="card-details">
-                        <span class="card-genres">${genresStr}</span>
-                        <span class="card-runtime" id="runtime-${id}">...</span>
-                    </div>
-                </div>
-            `;
-
-            container.appendChild(card);
-
-            // Fetch runtime asynchronously
-            fetchRuntime(id, type);
-        } catch (err) {
-            console.error("Error rendering item:", item, err);
-            // Continue to next item
-        }
+function wireBack(view) {
+    const btn = view.querySelector('.view-back');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+        if (hasInAppHistory) window.history.back();
+        else navigate(lastNonSearchHash === '#' + currentRouteKey ? '#/' : lastNonSearchHash);
     });
 }
 
-async function fetchRuntime(id, type) {
-    try {
-        // Check if we already have it in cache/memory (optional optimization, skipping for now)
-        const response = await fetch(`${window.AppConfig.tmdbBaseUrl}/${type}/${id}?api_key=${window.AppConfig.tmdbApiKey}`);
-        const data = await response.json();
+// options: [value, label, href]
+function filterPills(active, options) {
+    return `<div class="filter-pills">${options.map(([value, label, href]) =>
+        `<a class="pill ${value === active ? 'active' : ''}" href="${href}">${esc(label)}</a>`
+    ).join('')}</div>`;
+}
 
-        let runtime = '';
-        if (type === 'movie') {
-            runtime = data.runtime ? `${data.runtime}m` : '';
-        } else {
-            // For TV, it's an array of runtimes, take average or first
-            if (data.episode_run_time && data.episode_run_time.length > 0) {
-                runtime = `${data.episode_run_time[0]}m`;
+// Switching filters replaces the current history entry instead of stacking one per click
+function wirePills(view) {
+    view.querySelectorAll('.filter-pills a').forEach(a => a.addEventListener('click', (e) => {
+        e.preventDefault();
+        navigate(a.getAttribute('href'), { replace: true });
+    }));
+}
+
+function typePills(base, active, allLabel = 'All') {
+    const sep = base.includes('?') ? '&' : '?';
+    return filterPills(active, [['all', allLabel, base], ['movie', 'Movies', `${base}${sep}type=movie`], ['tv', 'TV Shows', `${base}${sep}type=tv`]]);
+}
+
+// Grid that loads more pages as you scroll
+function infiniteGrid(container, loadPage, { type, mixed = false, emptyText = 'Nothing here yet.' } = {}) {
+    const grid = document.createElement('div');
+    grid.className = 'media-grid';
+    const sentinel = document.createElement('div');
+    sentinel.className = 'grid-sentinel';
+    container.append(grid, sentinel);
+
+    let page = 1;
+    let totalPages = Infinity;
+    let loading = false;
+    const seen = new Set();
+
+    const observer = new IntersectionObserver(async (entries) => {
+        if (!container.isConnected) return observer.disconnect();
+        if (!entries[0].isIntersecting || loading || page > totalPages) return;
+        loading = true;
+        grid.insertAdjacentHTML('beforeend', skeletons(6));
+        try {
+            const data = await loadPage(page);
+            totalPages = Math.min(data.total_pages || 1, 500);
+            grid.querySelectorAll('.loading-skeleton').forEach(s => s.remove());
+            (data.results || []).forEach(item => {
+                const key = `${type || item.media_type}:${item.id}`;
+                if (seen.has(key)) return;
+                seen.add(key);
+                const card = createCard(item, { type, mixed });
+                if (card) grid.appendChild(card);
+            });
+            if (page === 1 && !grid.children.length) {
+                grid.outerHTML = `<p class="empty-state-text">${esc(emptyText)}</p>`;
+                return observer.disconnect();
             }
+            page++;
+        } catch (error) {
+            console.error('Error loading grid page:', error);
+            grid.querySelectorAll('.loading-skeleton').forEach(s => s.remove());
+            return;
+        } finally {
+            loading = false;
         }
+        // Re-observe so we keep loading if the sentinel is still on screen
+        observer.unobserve(sentinel);
+        if (page <= totalPages) observer.observe(sentinel);
+    }, { rootMargin: '800px 0px' });
 
-        if (runtime) {
-            const el = document.getElementById(`runtime-${id}`);
-            if (el) el.textContent = runtime;
-        }
-    } catch (e) {
-        // console.error('Error fetching runtime', e);
+    observer.observe(sentinel);
+}
+
+function renderCollectionView(view, key) {
+    const c = COLLECTIONS[key];
+    if (!c) return navigate('#/', { replace: true });
+    view.innerHTML = gridHeader(c.title);
+    wireBack(view);
+    infiniteGrid(view, page => tmdb(c.path, { page }), { type: c.type, mixed: !c.type });
+}
+
+function renderGenreView(view, type, id, sort) {
+    if (!['movie', 'tv'].includes(type) || !id) return navigate('#/', { replace: true });
+    if (!GENRE_SORTS[sort]) sort = 'popular';
+    const base = `#/genre/${type}/${id}`;
+    const sorts = Object.entries(GENRE_SORTS).map(([value, s]) => [value, s.label, value === 'popular' ? base : `${base}?sort=${value}`]);
+    view.innerHTML = gridHeader(genreTitle(type, id), { extra: filterPills(sort, sorts) });
+    wireBack(view);
+    wirePills(view);
+    const query = genreQuery(type, id, sort);
+    infiniteGrid(view, page => tmdb(query.path, { ...query.params, page }), { type });
+}
+
+function renderSearchView(view, query, typeFilter) {
+    if (document.activeElement !== searchInput) {
+        searchInput.value = query;
+        searchClearBtn.classList.toggle('hidden', !query);
+    }
+    const base = `#/search?q=${encodeURIComponent(query)}`;
+    view.innerHTML = gridHeader(`Results for “${query}”`, {
+        back: false,
+        extra: typePills(base, typeFilter)
+    });
+    wirePills(view);
+
+    if (typeFilter === 'movie' || typeFilter === 'tv') {
+        infiniteGrid(view, page => tmdb(`/search/${typeFilter}`, { query, page }), {
+            type: typeFilter, emptyText: `No ${typeFilter === 'movie' ? 'movies' : 'shows'} found for “${query}”.`
+        });
+    } else {
+        infiniteGrid(view, page => tmdb('/search/multi', { query, page }), {
+            mixed: true, emptyText: `No results for “${query}”. Try a different title.`
+        });
     }
 }
 
-window.openInfoModal = async function (id, type) {
+function renderLocalGrid(view, items, typeFilter, emptyState) {
+    const filtered = items.filter(i => typeFilter === 'all' || (i.media_type || i.type) === typeFilter);
+    if (!filtered.length) {
+        view.insertAdjacentHTML('beforeend', emptyState);
+        return;
+    }
+    const grid = document.createElement('div');
+    grid.className = 'media-grid';
+    filtered.forEach(item => {
+        const card = createCard(item, { type: item.media_type || item.type, mixed: true });
+        if (card) grid.appendChild(card);
+    });
+    view.appendChild(grid);
+}
+
+function emptyState(title, text) {
+    return `
+        <div class="empty-state">
+            <div class="empty-icon">${ICONS.film}</div>
+            <h2>${esc(title)}</h2>
+            <p>${esc(text)}</p>
+            <div class="empty-actions">
+                <a class="btn-primary" href="#/movies">Browse Movies</a>
+                <a class="btn-glass" href="#/tv">Browse TV Shows</a>
+            </div>
+        </div>
+    `;
+}
+
+function renderListView(view, typeFilter) {
+    const items = [...favorites].sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    view.innerHTML = gridHeader('My List', {
+        back: false,
+        extra: typePills('#/list', typeFilter, `All (${items.length})`)
+    });
+    wirePills(view);
+    renderLocalGrid(view, items, typeFilter,
+        emptyState('Your list is empty', 'Tap the bookmark on any title to save it here for later.'));
+}
+
+function renderHistoryView(view, typeFilter) {
+    view.innerHTML = gridHeader('Watch History', {
+        back: false,
+        extra: `${typePills('#/history', typeFilter)}
+            ${watchHistory.length ? '<button class="btn-glass btn-small clear-history">Clear history</button>' : ''}`
+    });
+    wirePills(view);
+    const clearBtn = view.querySelector('.clear-history');
+    if (clearBtn) clearBtn.addEventListener('click', confirmClearHistory);
+    renderLocalGrid(view, watchHistory, typeFilter,
+        emptyState('Nothing watched yet', 'Everything you start watching shows up here, so you can jump back in anytime.'));
+}
+
+function renderRecommendedView(view) {
+    const recs = JSON.parse(localStorage.getItem('vidsrc_recommendations') || '[]');
+    view.innerHTML = gridHeader('Recommended for You');
+    wireBack(view);
+    renderLocalGrid(view, recs, 'all', emptyState('No recommendations yet', 'Watch a few things and check back.'));
+}
+
+// Re-render the current view after local data (list/history) changes
+function refreshLocalViews() {
+    const name = parseRoute().name;
+    if (name === 'list' || name === 'history') renderRoute();
+}
+
+// --- Details sheet ---
+
+window.openDetails = async function (type, id) {
     const modalOverlay = document.getElementById('modal-overlay');
     const modalBody = document.getElementById('modal-body');
+    const modalContent = modalOverlay.querySelector('.modal-content');
 
-    modalBody.innerHTML = '<div class="loading-spinner">Loading...</div>';
-    modalOverlay.classList.remove('hidden');
+    modalContent.classList.add('details-modal');
+    modalBody.innerHTML = `<div class="details-loading">${skeletons(1)}</div>`;
+    modalContent.scrollTop = 0;
+
+    if (modalOverlay.classList.contains('hidden')) {
+        modalOverlay.classList.remove('hidden');
+        document.body.classList.add('modal-open');
+        // Give the sheet its own history entry so the back button closes it
+        if (!modalPushed) {
+            window.history.pushState({ modal: { type, id } }, '');
+            modalPushed = true;
+            modalHash = location.hash;
+        }
+    }
+    if (modalPushed) window.history.replaceState({ modal: { type, id } }, '');
 
     try {
-        const response = await fetch(`${window.AppConfig.tmdbBaseUrl}/${type}/${id}?api_key=${window.AppConfig.tmdbApiKey}&append_to_response=credits,videos`);
-        const data = await response.json();
-
+        const data = await getDetails(type, id);
         const title = data.title || data.name;
         const year = (data.release_date || data.first_air_date || '').split('-')[0];
-        const rating = data.vote_average ? data.vote_average.toFixed(1) : 'N/A';
-        const posterUrl = data.poster_path ? `${window.AppConfig.tmdbImageBaseUrl}${data.poster_path}` : '';
-        const backdropUrl = data.backdrop_path ? `${window.AppConfig.tmdbImageOriginalUrl}${data.backdrop_path}` : '';
-        const overview = data.overview;
-        const genresList = data.genres.map(g => g.name).join(', ');
-        const cast = data.credits.cast.slice(0, 5).map(c => c.name).join(', ');
-
-        let runtime = '';
-        if (type === 'movie') {
-            runtime = data.runtime ? `${data.runtime} min` : '';
-        } else {
-            if (data.episode_run_time && data.episode_run_time.length > 0) {
-                runtime = `${data.episode_run_time[0]} min per ep`;
-            } else {
-                runtime = `${data.number_of_seasons} Seasons`;
-            }
-        }
+        const rating = data.vote_average ? data.vote_average.toFixed(1) : null;
+        const runtime = formatRuntime(type, data);
+        const backdrop = data.backdrop_path ? `${window.AppConfig.tmdbImageOriginalUrl}${data.backdrop_path}` : '';
+        const logo = (data.images?.logos || []).find(l => l.iso_639_1 === 'en') || (data.images?.logos || [])[0];
+        const cast = (data.credits?.cast || []).slice(0, 8).map(c => c.name).join(', ');
+        const director = type === 'movie'
+            ? (data.credits?.crew || []).filter(c => c.job === 'Director').map(c => c.name).join(', ')
+            : (data.created_by || []).map(c => c.name).join(', ');
+        const videos = data.videos?.results || [];
+        const trailer = videos.find(v => v.site === 'YouTube' && v.type === 'Trailer' && v.official)
+            || videos.find(v => v.site === 'YouTube' && v.type === 'Trailer')
+            || videos.find(v => v.site === 'YouTube' && v.type === 'Teaser');
+        const recs = (data.recommendations?.results || []).filter(r => r.poster_path).slice(0, 12);
+        // Series start from the last episode watched, or the first episode
+        const resume = type === 'tv' ? Episodes.resumePoint(id, data.seasons) : null;
+        const playLabel = resume && resume.resumed ? `Resume S${resume.season} E${resume.episode}` : 'Play';
 
         modalBody.innerHTML = `
-            <div class="modal-layout">
-                <div class="modal-poster-container">
-                    <img src="${posterUrl}" alt="${title}" class="modal-poster">
-                </div>
-                <div class="modal-info">
-                    <h2 class="modal-title">${title}</h2>
-                    <div class="modal-meta">
-                        <span class="modal-year">${year}</span>
-                        <span class="modal-rating">⭐ ${rating}</span>
-                        <span class="modal-runtime">${runtime}</span>
-                    </div>
-                    <div class="modal-genres">${genresList}</div>
-                    
-                    <div class="modal-section">
-                        <h3>Overview</h3>
-                        <p class="modal-desc">${overview}</p>
-                    </div>
-                    
-                    <div class="modal-section">
-                        <h3>Starring</h3>
-                        <p class="modal-cast">${cast}</p>
-                    </div>
-                    
-                    <div class="modal-actions">
-                        <button onclick="playContent('${id}', '${type}'); closeModal();" class="btn-primary">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                            Watch Now
-                        </button>
+            <div class="details">
+                <div class="details-hero" ${backdrop ? `style="background-image: url('${backdrop}')"` : ''}>
+                    <div class="details-hero-shade"></div>
+                    <div class="details-hero-content">
+                        ${logo
+                ? `<img class="details-logo" src="https://image.tmdb.org/t/p/w500${logo.file_path}" alt="${esc(title)}">`
+                : `<h2 class="details-title">${esc(title)}</h2>`}
+                        <div class="details-buttons">
+                            <button class="btn-primary details-play">${ICONS.play} ${playLabel}</button>
+                            <button class="btn-glass details-fav" data-fav-key="${type}:${id}">${favIcon(id, type)} <span>${isFavorite(id, type) ? 'In My List' : 'My List'}</span></button>
+                            ${trailer ? `<button class="btn-glass details-trailer">${ICONS.film} Trailer</button>` : ''}
+                        </div>
                     </div>
                 </div>
+                <div class="details-body">
+                    <div class="details-main">
+                        <div class="details-meta">
+                            ${rating ? `<span class="rating">★ ${rating}</span>` : ''}
+                            ${year ? `<span>${year}</span>` : ''}
+                            ${runtime ? `<span>${runtime}</span>` : ''}
+                            <span class="meta-tag">${type === 'tv' ? 'Series' : 'Movie'}</span>
+                        </div>
+                        ${data.tagline ? `<p class="details-tagline">${esc(data.tagline)}</p>` : ''}
+                        <p class="details-overview">${esc(data.overview)}</p>
+                    </div>
+                    <div class="details-side">
+                        ${cast ? `<p><span class="label">Cast:</span> ${esc(cast)}</p>` : ''}
+                        ${director ? `<p><span class="label">${type === 'movie' ? 'Director' : 'Created by'}:</span> ${esc(director)}</p>` : ''}
+                        ${(data.genres || []).length ? `<p><span class="label">Genres:</span> ${data.genres.map(g =>
+                    `<a class="details-genre" href="#/genre/${type}/${g.id}">${esc(g.name)}</a>`).join(', ')}</p>` : ''}
+                    </div>
+                </div>
+                ${type === 'tv' ? '<div class="details-episodes"></div>' : ''}
+                ${recs.length ? `
+                    <div class="details-recs">
+                        <h3>More Like This</h3>
+                        <div class="media-grid recs-grid"></div>
+                    </div>` : ''}
             </div>
         `;
 
-        // Add backdrop as background to modal content? Or just keep it clean.
-        // Let's keep it clean for now.
-
+        modalBody.querySelector('.details-play').addEventListener('click', () =>
+            resume ? playContent(id, type, resume.season, resume.episode) : playContent(id, type));
+        const episodesContainer = modalBody.querySelector('.details-episodes');
+        if (episodesContainer) {
+            Episodes.render(episodesContainer, {
+                tvId: id,
+                seasons: data.seasons,
+                season: resume.season,
+                current: resume.resumed ? resume : null,
+                currentLabel: 'Continue',
+                onSelect: (season, episode) => playContent(id, 'tv', season, episode)
+            });
+        }
+        modalBody.querySelector('.details-fav').addEventListener('click', () => toggleFavoriteItem(data, type));
+        const trailerBtn = modalBody.querySelector('.details-trailer');
+        if (trailerBtn) {
+            trailerBtn.addEventListener('click', () => {
+                const hero = modalBody.querySelector('.details-hero');
+                hero.classList.add('playing-trailer');
+                hero.innerHTML = `<iframe src="https://www.youtube-nocookie.com/embed/${trailer.key}?autoplay=1&rel=0" title="${esc(title)} trailer" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
+            });
+        }
+        const recsGrid = modalBody.querySelector('.recs-grid');
+        if (recsGrid) {
+            recs.forEach(item => {
+                const card = createCard(item, { type: item.media_type || type });
+                if (card) recsGrid.appendChild(card);
+            });
+        }
     } catch (e) {
         console.error('Error loading details', e);
-        modalBody.innerHTML = '<p class="error">Failed to load details.</p>';
+        modalBody.innerHTML = '<p class="error" style="padding: 2rem;">Failed to load details.</p>';
     }
 };
 
+// Kept for existing callers
+window.openInfoModal = function (id, type) {
+    openDetails(type, id);
+};
+
+function hideModal() {
+    const modalOverlay = document.getElementById('modal-overlay');
+    modalOverlay.classList.add('hidden');
+    modalOverlay.querySelector('.modal-content').classList.remove('details-modal');
+    document.getElementById('modal-body').innerHTML = ''; // Also stops any playing trailer
+    document.body.classList.remove('modal-open');
+}
+
 window.closeModal = function () {
-    document.getElementById('modal-overlay').classList.add('hidden');
-    document.getElementById('modal-body').innerHTML = '';
+    if (modalPushed) {
+        // popstate handler hides the sheet
+        window.history.back();
+    } else {
+        hideModal();
+    }
 };
 
 // Add event listener for closing modal
@@ -785,171 +1151,133 @@ document.getElementById('modal-overlay').addEventListener('click', (e) => {
     if (e.target.id === 'modal-overlay') closeModal();
 });
 
-function showLoading(container) {
-    container.innerHTML = `
-        <div class="loading-skeleton"></div>
-        <div class="loading-skeleton"></div>
-        <div class="loading-skeleton"></div>
-        <div class="loading-skeleton"></div>
-        <div class="loading-skeleton"></div>
-    `;
+// --- Surprise me ---
+
+async function surpriseMe() {
+    const route = parseRoute();
+    const type = route.name === 'movies' ? 'movie'
+        : route.name === 'tv' ? 'tv'
+            : route.name === 'genre' ? route.parts[1]
+                : (Math.random() < 0.5 ? 'movie' : 'tv');
+    const btn = document.getElementById('surprise-btn');
+    btn.classList.add('spinning');
+    try {
+        // A random pick from well-liked, well-known titles (respecting the current genre page if there is one)
+        const params = { sort_by: 'vote_average.desc', 'vote_count.gte': type === 'movie' ? 1500 : 400, page: 1 + Math.floor(Math.random() * 10) };
+        if (route.name === 'genre') params.with_genres = route.parts[2];
+        let data = await tmdb(`/discover/${type}`, params);
+        if (!data.results.length) data = await tmdb(`/discover/${type}`, { ...params, page: 1 });
+        const pick = data.results[Math.floor(Math.random() * data.results.length)];
+        if (pick) openDetails(type, pick.id);
+    } catch (e) {
+        console.error('Surprise me failed', e);
+    } finally {
+        setTimeout(() => btn.classList.remove('spinning'), 400);
+    }
 }
 
 // Expose to global scope for inline onclicks
-window.playContent = function (tmdbId, type) {
-    const url = getStreamUrl(tmdbId, type);
-    console.log(`Opening: ${url}`);
+// For series, season/episode default to where the user left off (stream.html falls back to the first episode)
+window.playContent = function (tmdbId, type, season, episode) {
+    let query = `tmdbId=${tmdbId}&type=${type}`;
+    if (type === 'tv') {
+        const progress = Episodes.getProgress(tmdbId);
+        if (season === undefined && progress) {
+            season = progress.season;
+            episode = progress.episode;
+        }
+        if (season !== undefined && episode) query += `&season=${season}&episode=${episode}`;
+    }
+    console.log(`Opening: ${getStreamUrl(tmdbId, type, season, episode)}`);
 
-    // Add to history
-    addToHistory(tmdbId, type);
-
-    // Always use stream.html to ensure metrics and overlays work
-    window.location.href = `stream.html?tmdbId=${tmdbId}&type=${type}`;
+    // Watch history is recorded by stream.html once it has loaded the title's details
+    window.location.href = `stream.html?${query}`;
 };
 
 // --- Favorites Logic ---
 
-function isFavorite(id) {
-    return favorites.some(f => f.id == id);
+function isFavorite(id, type) {
+    return favorites.some(f => f.id == id && (!type || !(f.media_type || f.type) || (f.media_type || f.type) === type));
 }
 
-window.toggleFavorite = function (id, type, title, poster_path, year, rating) {
-    const index = favorites.findIndex(f => f.id == id);
+function toggleFavoriteItem(item, type) {
+    const id = item.id;
+    const index = favorites.findIndex(f => f.id == id && (!(f.media_type || f.type) || (f.media_type || f.type) === type));
     if (index === -1) {
-        favorites.push({ id, type, title: decodeURIComponent(title), poster_path, year, rating, timestamp: Date.now() });
+        const data = safeExtractItemData(item, type);
+        favorites.push({
+            id,
+            type,
+            media_type: type,
+            title: data.title,
+            poster_path: item.poster_path,
+            year: data.year,
+            rating: data.rating,
+            vote_average: item.vote_average,
+            genre_ids: item.genre_ids || (item.genres || []).map(g => g.id).filter(Boolean),
+            timestamp: Date.now()
+        });
     } else {
         favorites.splice(index, 1);
     }
     localStorage.setItem('vidsrc_favorites', JSON.stringify(favorites));
-    renderFavorites();
-
-    // Re-render current grids to update heart icons (inefficient but works for now)
-    // A better way would be to toggle the class on the button directly
-    const btns = document.querySelectorAll(`.fav-btn[onclick*="${id}"]`);
-    btns.forEach(btn => {
-        btn.classList.toggle('active');
-        const svg = btn.querySelector('svg');
-        if (btn.classList.contains('active')) {
-            svg.setAttribute('fill', 'currentColor');
-        } else {
-            svg.setAttribute('fill', 'none');
-        }
-    });
-};
-
-function renderFavorites() {
-    const favSection = document.getElementById('favorites-section');
-    const favGrid = document.getElementById('favorites-grid');
-
-    if (favorites.length === 0) {
-        favSection.classList.add('hidden');
-        return;
-    }
-
-    favSection.classList.remove('hidden');
-    renderGrid(favorites, favGrid, null);
-    updateForYouVisibility();
+    syncFavoriteButtons(`${type}:${id}`);
+    updateListCount();
+    showToast(index === -1 ? 'Added to My List' : 'Removed from My List');
+    if (parseRoute().name === 'list') renderRoute();
 }
 
-// --- History Logic ---
+// Kept for existing callers that pass flat fields
+window.toggleFavorite = function (id, type, title, poster_path, year, rating) {
+    toggleFavoriteItem({ id, title: decodeURIComponent(title), poster_path, release_date: year, vote_average: Number(rating) }, type);
+};
 
-async function addToHistory(id, type) {
-    // We need details to save to history. 
-    // Since playContent only has ID and type, we might need to fetch details or find it in the DOM/memory.
-    // For simplicity, let's try to find it in the grids first, or fetch it.
-
-    let item = findItemInGrids(id);
-
-    if (!item) {
-        // Fetch details if not found
-        try {
-            const response = await fetch(`${window.AppConfig.tmdbBaseUrl}/${type}/${id}?api_key=${window.AppConfig.tmdbApiKey}`);
-            item = await response.json();
-        } catch (e) {
-            console.error("Could not fetch item for history", e);
-            return;
-        }
-    }
-
-    if (!item) return;
-
-    const title = item.title || item.name;
-    const poster_path = item.poster_path;
-    const year = (item.release_date || item.first_air_date || '').split('-')[0];
-    const rating = item.vote_average ? item.vote_average.toFixed(1) : 'N/A';
-    const genresList = item.genres || (item.genre_ids ? item.genre_ids.map(id => ({ id, name: genres[id] })) : []);
-
-    // Remove if exists (to move to top)
-    const index = history.findIndex(h => h.id == id);
-    if (index !== -1) {
-        history.splice(index, 1);
-    }
-
-    // Save with media_type explicitly
-    history.unshift({
-        id,
-        media_type: type, // Important: save as media_type for consistency
-        type, // Keep for backward compat if needed, but prefer media_type
-        title,
-        poster_path,
-        year,
-        rating,
-        vote_average: item.vote_average, // Save raw value too
-        genres: genresList,
-        timestamp: Date.now()
+function syncFavoriteButtons(key) {
+    const [type, id] = key.split(':');
+    const active = isFavorite(id, type);
+    document.querySelectorAll(`[data-fav-key="${key}"]`).forEach(btn => {
+        btn.classList.toggle('active', active);
+        const svg = btn.querySelector('svg');
+        if (svg) svg.setAttribute('fill', active ? 'currentColor' : 'none');
+        const label = btn.querySelector('span');
+        if (label) label.textContent = active ? 'In My List' : 'My List';
     });
+}
 
-    // Limit history to 50 items
-    if (history.length > 50) {
-        history.pop();
-    }
+function updateListCount() {
+    listCountBadge.textContent = favorites.length > 99 ? '99+' : favorites.length;
+    listCountBadge.classList.toggle('hidden', favorites.length === 0);
+}
 
-    localStorage.setItem('vidsrc_history', JSON.stringify(history));
-    renderHistory();
+function renderFavorites() {
+    updateListCount();
+    refreshLocalViews();
 }
 
 function renderHistory() {
-    const histSection = document.getElementById('history-section');
-    const histGrid = document.getElementById('history-grid');
+    refreshLocalViews();
+}
 
-    if (history.length === 0) {
-        histSection.classList.add('hidden');
-        return;
+let toastTimer;
+function showToast(message) {
+    let toast = document.getElementById('toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast';
+        toast.setAttribute('role', 'status');
+        document.body.appendChild(toast);
     }
-
-    histSection.classList.remove('hidden');
-    renderGrid(history.slice(0, 20), histGrid, null);
-    updateForYouVisibility();
-}
-
-function updateForYouVisibility() {
-    const forYouContainer = document.getElementById('foryou-container');
-    const favSection = document.getElementById('favorites-section');
-    const histSection = document.getElementById('history-section');
-
-    const hasFavs = !favSection.classList.contains('hidden');
-    const hasHist = !histSection.classList.contains('hidden');
-
-    if (hasFavs || hasHist) {
-        forYouContainer.classList.remove('hidden');
-    } else {
-        forYouContainer.classList.add('hidden');
-    }
-}
-
-function findItemInGrids(id) {
-    // Helper to find item data from existing grids to avoid fetch
-    // This is a bit hacky as we don't store the full data objects in a global map, 
-    // but we can rely on fetch if needed. 
-    // Actually, let's just fetch it or rely on what we have.
-    // Since we don't have a global store of items, fetching is safer.
-    return null;
+    toast.textContent = message;
+    toast.classList.add('visible');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('visible'), 1800);
 }
 
 
-function getStreamUrl(tmdbId, type) {
+function getStreamUrl(tmdbId, type, season, episode) {
     // type is 'movie' or 'tv'
-    // Template: vidsrc.xyz/embed/movie/{tmdbId}
+    // Template: play.vlix.ai/embed/movie/{tmdbId}, series take ?season=x&episode=y
+    if (type === 'tv') return Episodes.playerUrl(tmdbId, season, episode);
 
     let template = type === 'movie'
         ? window.AppConfig.playerUrlTemplateMovie
@@ -1054,7 +1382,7 @@ function confirmClearHistory() {
 
 window.performClearHistory = function () {
     localStorage.removeItem('vidsrc_history');
-    history = [];
+    watchHistory = [];
     renderHistory();
     closeModal();
     // Optional: Show success toast/alert

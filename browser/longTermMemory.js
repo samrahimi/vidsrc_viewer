@@ -70,6 +70,7 @@ const setLongTermMemory = (memories) => {
 // One day, there will be a hilarious hack involving movie posters, but we really don't care because the stakes are very low
 
 const injectContext = (message = { type: "userContext", payload: "hamster!" }, targetSelector = "#chat-iframe") => {
+    if (!window.AppConfig || !window.AppConfig.aiChatEnabled) return
     $(targetSelector)[0].contentWindow.postMessage(message)
     console.log("Posted message to chat: ", message)
 }
