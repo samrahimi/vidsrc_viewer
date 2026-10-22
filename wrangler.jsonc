@@ -1,0 +1,8 @@
+// Cloudflare Workers deploy config: serves the static web client in browser/
+{
+  "name": "vlix",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./browser"
+  }
+}
